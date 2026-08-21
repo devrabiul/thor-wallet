@@ -11,6 +11,34 @@ const TEMPLATES = [
     { to: '/bybit-light', exchange: 'Bybit', theme: 'Light', accent: '#F7A600', dark: false },
 ];
 
+const cardBase =
+    'flex items-center gap-3.5 rounded-2xl border p-3.5 backdrop-blur-xl transition duration-200';
+
+const Swatch = ({ accent, dark, muted }) => (
+    <div
+        className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border ${
+            dark ? 'border-slate-800 bg-slate-900' : 'border-slate-200 bg-slate-50'
+        } ${muted ? 'opacity-60' : ''}`}
+    >
+        {dark ? (
+            <FiMoon className="h-4 w-4" style={{ color: accent }} />
+        ) : (
+            <FiSun className="h-4 w-4" style={{ color: accent }} />
+        )}
+    </div>
+);
+
+const TemplateGrid = ({ children }) => (
+    <div className="grid gap-3 sm:grid-cols-2">{children}</div>
+);
+
+const SectionHeading = ({ title, note }) => (
+    <div className="mb-3 flex items-baseline gap-2">
+        <h2 className="text-xs font-semibold uppercase tracking-wider text-slate-500">{title}</h2>
+        {note && <span className="text-[11px] text-slate-400">{note}</span>}
+    </div>
+);
+
 const Home = () => {
     const navigate = useNavigate();
     const username = localStorage.getItem('username');
@@ -86,48 +114,63 @@ const Home = () => {
                 </div>
             </header>
 
-            {/* Templates */}
             <main className="mx-auto max-w-3xl px-5 py-10 sm:py-14">
-                <div className="mb-6">
+                <div className="mb-8">
                     <h1 className="text-xl font-semibold text-slate-800">Choose a template</h1>
                     <p className="mt-1 text-sm text-slate-400">
                         Pick a wallet layout to generate a screenshot.
                     </p>
                 </div>
 
-                <div className="grid gap-3 sm:grid-cols-2">
-                    {TEMPLATES.map(({ to, exchange, theme, accent, dark }) => (
-                        <Link
-                            key={to}
-                            to={to}
-                            className="group flex items-center gap-3.5 rounded-2xl border border-white/70 bg-white/70 p-3.5 shadow-sm shadow-slate-200/50 backdrop-blur-xl transition duration-200 hover:-translate-y-0.5 hover:border-white hover:bg-white/90 hover:shadow-lg hover:shadow-slate-300/40 focus:outline-none focus-visible:ring-4 focus-visible:ring-indigo-100"
-                        >
-                            {/* Theme swatch */}
-                            <div
-                                className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border ${
-                                    dark
-                                        ? 'border-slate-800 bg-slate-900'
-                                        : 'border-slate-200 bg-slate-50'
-                                }`}
+                {/* Existing, working generators */}
+                <section className="mb-9">
+                    <SectionHeading title="V1 / Old Generator" />
+                    <TemplateGrid>
+                        {TEMPLATES.map(({ to, exchange, theme, accent, dark }) => (
+                            <Link
+                                key={to}
+                                to={to}
+                                className={`${cardBase} group border-white/70 bg-white/70 shadow-sm shadow-slate-200/50 hover:-translate-y-0.5 hover:border-white hover:bg-white/90 hover:shadow-lg hover:shadow-slate-300/40 focus:outline-none focus-visible:ring-4 focus-visible:ring-indigo-100`}
                             >
-                                {dark ? (
-                                    <FiMoon className="h-4 w-4" style={{ color: accent }} />
-                                ) : (
-                                    <FiSun className="h-4 w-4" style={{ color: accent }} />
-                                )}
+                                <Swatch accent={accent} dark={dark} />
+                                <div className="min-w-0 flex-1">
+                                    <p className="text-[15px] font-medium text-slate-800">
+                                        {exchange}
+                                    </p>
+                                    <p className="text-xs text-slate-400">{theme} theme</p>
+                                </div>
+                                <FiArrowRight className="h-4 w-4 shrink-0 text-slate-300 transition-all duration-200 group-hover:translate-x-0.5 group-hover:text-slate-500" />
+                            </Link>
+                        ))}
+                    </TemplateGrid>
+                </section>
+
+                {/* Placeholders — these have no routes yet, so they aren't links */}
+                <section>
+                    <SectionHeading title="New Templates" note="not wired up yet" />
+                    <TemplateGrid>
+                        {TEMPLATES.map(({ to, exchange, theme, accent, dark }) => (
+                            <div
+                                key={`new-${to}`}
+                                aria-disabled="true"
+                                className={`${cardBase} cursor-default border-white/50 border-dashed bg-white/40`}
+                            >
+                                <Swatch accent={accent} dark={dark} muted />
+                                <div className="min-w-0 flex-1">
+                                    <p className="text-[15px] font-medium text-slate-500">
+                                        {exchange}
+                                    </p>
+                                    <p className="text-xs text-slate-400">{theme} theme</p>
+                                </div>
+                                <span className="shrink-0 rounded-full border border-slate-200 bg-white/70 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-slate-400">
+                                    Soon
+                                </span>
                             </div>
+                        ))}
+                    </TemplateGrid>
+                </section>
 
-                            <div className="min-w-0 flex-1">
-                                <p className="text-[15px] font-medium text-slate-800">{exchange}</p>
-                                <p className="text-xs text-slate-400">{theme} theme</p>
-                            </div>
-
-                            <FiArrowRight className="h-4 w-4 shrink-0 text-slate-300 transition-all duration-200 group-hover:translate-x-0.5 group-hover:text-slate-500" />
-                        </Link>
-                    ))}
-                </div>
-
-                <p className="mt-8 text-center text-[11px] text-slate-400">
+                <p className="mt-10 text-center text-[11px] text-slate-400">
                     Sessions expire after 1 hour · Authorized access only
                 </p>
             </main>
