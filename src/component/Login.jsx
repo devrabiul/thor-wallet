@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { FiAlertCircle, FiArrowRight, FiEye, FiEyeOff, FiLock, FiUser, FiZap } from 'react-icons/fi';
 import { isAuthenticated, startSession, verifyCredentials } from '../lib/auth';
+import { meshBackground } from '../lib/theme';
 
 const Login = () => {
     const [username, setUsername] = useState('');
@@ -51,19 +52,6 @@ const Login = () => {
 
     const iconClasses =
         'pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-300';
-
-    // Mesh gradient: each hue anchored to its own corner so they blend at the
-    // edges instead of stacking in the middle and turning grey.
-    const meshBackground = {
-        backgroundColor: '#FAFAFF',
-        backgroundImage: [
-            'radial-gradient(at 12% 16%, rgba(129, 140, 248, 0.40) 0px, transparent 55%)',
-            'radial-gradient(at 88% 10%, rgba(56, 189, 248, 0.34) 0px, transparent 52%)',
-            'radial-gradient(at 92% 80%, rgba(244, 114, 182, 0.32) 0px, transparent 55%)',
-            'radial-gradient(at 8% 86%, rgba(251, 191, 36, 0.26) 0px, transparent 52%)',
-            'radial-gradient(at 50% 55%, rgba(167, 139, 250, 0.18) 0px, transparent 60%)',
-        ].join(', '),
-    };
 
     return (
         <div

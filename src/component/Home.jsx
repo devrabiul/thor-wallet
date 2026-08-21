@@ -1,158 +1,136 @@
-import React, { useEffect } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { FiArrowRight, FiLogOut, FiMoon, FiSun, FiZap } from 'react-icons/fi';
+import { SESSION_DURATION, clearSession } from '../lib/auth';
+import { meshBackground } from '../lib/theme';
+
+const TEMPLATES = [
+    { to: '/binance-light', exchange: 'Binance', theme: 'Light', accent: '#F0B90B', dark: false },
+    { to: '/binance-dark', exchange: 'Binance', theme: 'Dark', accent: '#F0B90B', dark: true },
+    { to: '/bybit', exchange: 'Bybit', theme: 'Dark', accent: '#F7A600', dark: true },
+    { to: '/bybit-light', exchange: 'Bybit', theme: 'Light', accent: '#F7A600', dark: false },
+];
 
 const Home = () => {
     const navigate = useNavigate();
-    const userRole = localStorage.getItem('userRole');
     const username = localStorage.getItem('username');
-    let logoutTimer;
+    const userRole = localStorage.getItem('userRole');
 
-    // Check authentication on mount
-    useEffect(() => {
-        const isAuth = localStorage.getItem('isAuthenticated');
-        if (!isAuth || isAuth !== 'true') {
-            navigate('/login');
-        }
+    // A ref, not a local — a plain variable is recreated every render, so the
+    // cleanup and the activity handler would each clear a different timer.
+    const logoutTimer = useRef(null);
+
+    const handleLogout = useCallback(() => {
+        clearTimeout(logoutTimer.current);
+        clearSession();
+        navigate('/login', { replace: true });
     }, [navigate]);
 
-    // Function to handle logout
-    const handleLogout = () => {
-        // Clear localStorage
-        localStorage.removeItem('isAuthenticated');
-        localStorage.removeItem('userRole');
-        localStorage.removeItem('username');
-        localStorage.removeItem('loginTime');
-        
-        // Clear timer if exists
-        if (logoutTimer) {
-            clearTimeout(logoutTimer);
-        }
-        
-        // Navigate to login page
-        navigate('/login');
-    };
-
-    // Function to reset timer
-    const resetLogoutTimer = () => {
-        // Clear existing timer
-        if (logoutTimer) {
-            clearTimeout(logoutTimer);
-        }
-        
-        // Set new timer for 1 hour (3600000 milliseconds)
-        logoutTimer = setTimeout(() => {
-            alert('Session expired! You will be logged out due to inactivity.');
-            handleLogout();
-        }, 3600000); // 1 hour = 3600000ms
-    };
-
-    // Set up activity listeners
     useEffect(() => {
-        // Reset timer on user activity
-        const activityEvents = ['mousedown', 'keydown', 'scroll', 'touchstart', 'click'];
-        
-        const handleUserActivity = () => {
-            resetLogoutTimer();
+        // Expire relative to the original login, so refreshing can't extend a
+        // session past its deadline.
+        const deadlineFrom = (loginTime) => {
+            const elapsed = Date.now() - Number(loginTime || Date.now());
+            return Math.max(0, SESSION_DURATION - elapsed);
         };
-        
-        // Add event listeners
-        activityEvents.forEach(event => {
-            window.addEventListener(event, handleUserActivity);
-        });
-        
-        // Initialize timer on component mount
-        resetLogoutTimer();
-        
-        // Check if session has expired on mount (for page refresh)
-        const loginTime = localStorage.getItem('loginTime');
-        if (loginTime) {
-            const currentTime = Date.now();
-            const timeElapsed = currentTime - parseInt(loginTime);
-            
-            if (timeElapsed >= 3600000) {
-                // Session expired
-                handleLogout();
-            } else {
-                // Set remaining time
-                const remainingTime = 3600000 - timeElapsed;
-                logoutTimer = setTimeout(() => {
-                    alert('Session expired! You will be logged out.');
-                    handleLogout();
-                }, remainingTime);
-            }
-        }
-        
-        // Cleanup on unmount
+
+        const armTimer = () => {
+            clearTimeout(logoutTimer.current);
+            logoutTimer.current = setTimeout(
+                handleLogout,
+                deadlineFrom(localStorage.getItem('loginTime')),
+            );
+        };
+
+        const events = ['mousedown', 'keydown', 'scroll', 'touchstart'];
+        events.forEach((event) => window.addEventListener(event, armTimer));
+        armTimer();
+
         return () => {
-            if (logoutTimer) {
-                clearTimeout(logoutTimer);
-            }
-            
-            // Remove event listeners
-            activityEvents.forEach(event => {
-                window.removeEventListener(event, handleUserActivity);
-            });
+            clearTimeout(logoutTimer.current);
+            events.forEach((event) => window.removeEventListener(event, armTimer));
         };
-    }, []);
+    }, [handleLogout]);
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-purple-600 via-indigo-600 to-blue-500">
-            {/* Header with Logout Button and Timer Display */}
-            <div className="bg-white/10 backdrop-blur-xl shadow-lg">
-                <div className="container mx-auto px-6 py-4">
-                    <div className="flex justify-between items-center">
-                        <div>
-                            <h2 className="text-white text-lg font-semibold">
-                                Welcome, <span className="text-yellow-300">{username || 'User'}</span>
-                            </h2>
-                            <p className="text-white/70 text-sm">
-                                Role: <span className="text-green-300">{userRole || 'Guest'}</span>
+        <div style={meshBackground} className="min-h-screen antialiased">
+            {/* Header */}
+            <header className="border-b border-white/60 bg-white/50 backdrop-blur-xl">
+                <div className="mx-auto flex max-w-3xl items-center justify-between gap-3 px-5 py-3.5">
+                    <div className="flex items-center gap-2.5">
+                        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-indigo-500 to-violet-500 shadow-sm shadow-indigo-500/20">
+                            <FiZap className="h-4 w-4 text-white" strokeWidth={2.5} />
+                        </div>
+                        <span className="text-sm font-semibold tracking-[0.2em] text-slate-800">
+                            THOR
+                        </span>
+                    </div>
+
+                    <div className="flex items-center gap-2.5">
+                        <div className="hidden text-right sm:block">
+                            <p className="text-[13px] font-medium leading-tight text-slate-700">
+                                {username || 'User'}
+                            </p>
+                            <p className="text-[11px] leading-tight text-slate-400">
+                                {userRole || 'Guest'}
                             </p>
                         </div>
                         <button
                             onClick={handleLogout}
-                            className="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-6 rounded-xl shadow-lg transition-all duration-200 transform hover:scale-105"
+                            className="flex h-9 items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 text-[13px] font-medium text-slate-600 shadow-sm shadow-slate-200/50 transition-colors hover:border-rose-200 hover:text-rose-600 focus:outline-none focus-visible:ring-4 focus-visible:ring-indigo-100"
                         >
-                            🚪 Logout
+                            <FiLogOut className="h-3.5 w-3.5" />
+                            Log out
                         </button>
                     </div>
                 </div>
-            </div>
+            </header>
 
-            {/* Main Content */}
-            <div className="flex items-center justify-center min-h-[calc(100vh-80px)]">
-                <div className="flex flex-col gap-6 w-full max-w-sm px-6">
-
-                    {/* Binance Light */}
-                    <Link to="/binance-light">
-                        <button className="w-full py-4 rounded-2xl text-white text-xl font-bold bg-gradient-to-r from-yellow-400 to-orange-500 shadow-xl hover:scale-105 transition duration-300">
-                            Binance Light
-                        </button>
-                    </Link>
-
-                    {/* Binance Dark */}
-                    <Link to="/binance-dark">
-                        <button className="w-full py-4 rounded-2xl text-white text-xl font-bold bg-gradient-to-r from-gray-900 to-black shadow-xl hover:scale-105 transition duration-300 border border-yellow-400">
-                            Binance Dark
-                        </button>
-                    </Link>
-
-                    {/* Bybit Dark */}
-                    <Link to="/bybit">
-                        <button className="w-full py-4 rounded-2xl text-white text-xl font-bold bg-gradient-to-r from-gray-900 to-black shadow-xl hover:scale-105 transition duration-300">
-                            Bybit Dark
-                        </button>
-                    </Link>
-
-                    {/* Bybit Light */}
-                    <Link to="/bybit-light">
-                        <button className="w-full py-4 rounded-2xl text-white text-xl font-bold bg-gradient-to-r from-pink-500 to-red-500 shadow-xl hover:scale-105 transition duration-300">
-                            Bybit Light
-                        </button>
-                    </Link>
-
+            {/* Templates */}
+            <main className="mx-auto max-w-3xl px-5 py-10 sm:py-14">
+                <div className="mb-6">
+                    <h1 className="text-xl font-semibold text-slate-800">Choose a template</h1>
+                    <p className="mt-1 text-sm text-slate-400">
+                        Pick a wallet layout to generate a screenshot.
+                    </p>
                 </div>
-            </div>
+
+                <div className="grid gap-3 sm:grid-cols-2">
+                    {TEMPLATES.map(({ to, exchange, theme, accent, dark }) => (
+                        <Link
+                            key={to}
+                            to={to}
+                            className="group flex items-center gap-3.5 rounded-2xl border border-white/70 bg-white/70 p-3.5 shadow-sm shadow-slate-200/50 backdrop-blur-xl transition duration-200 hover:-translate-y-0.5 hover:border-white hover:bg-white/90 hover:shadow-lg hover:shadow-slate-300/40 focus:outline-none focus-visible:ring-4 focus-visible:ring-indigo-100"
+                        >
+                            {/* Theme swatch */}
+                            <div
+                                className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border ${
+                                    dark
+                                        ? 'border-slate-800 bg-slate-900'
+                                        : 'border-slate-200 bg-slate-50'
+                                }`}
+                            >
+                                {dark ? (
+                                    <FiMoon className="h-4 w-4" style={{ color: accent }} />
+                                ) : (
+                                    <FiSun className="h-4 w-4" style={{ color: accent }} />
+                                )}
+                            </div>
+
+                            <div className="min-w-0 flex-1">
+                                <p className="text-[15px] font-medium text-slate-800">{exchange}</p>
+                                <p className="text-xs text-slate-400">{theme} theme</p>
+                            </div>
+
+                            <FiArrowRight className="h-4 w-4 shrink-0 text-slate-300 transition-all duration-200 group-hover:translate-x-0.5 group-hover:text-slate-500" />
+                        </Link>
+                    ))}
+                </div>
+
+                <p className="mt-8 text-center text-[11px] text-slate-400">
+                    Sessions expire after 1 hour · Authorized access only
+                </p>
+            </main>
         </div>
     );
 };
