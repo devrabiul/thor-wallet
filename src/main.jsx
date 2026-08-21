@@ -16,37 +16,21 @@ import BybitLight from './component/BybitLight.jsx';
 import Login from './component/Login.jsx';
 import PrivateRoute from './Route/PrivateRoute.jsx';
 
-// Helper function to check authentication
-const isAuthenticated = () => {
-  const auth = localStorage.getItem('isAuthenticated') === 'true';
-  const loginTime = localStorage.getItem('loginTime');
-  
-  if (auth && loginTime) {
-    const currentTime = Date.now();
-    const timeElapsed = currentTime - parseInt(loginTime);
-    
-    // Check if session has expired (1 hour = 3600000ms)
-    if (timeElapsed >= 3600000) {
-      // Clear expired session
-      localStorage.removeItem('isAuthenticated');
-      localStorage.removeItem('userRole');
-      localStorage.removeItem('username');
-      localStorage.removeItem('loginTime');
-      return false;
-    }
-    return true;
-  }
-  return false;
-};
-
 const router = createBrowserRouter([
   {
     path: "/",
     element: <App />,
     children: [
       {
+        // Auth is checked inside PrivateRoute so it re-evaluates on every
+        // render. Calling it here would freeze the result at module load and
+        // strand the user on /login until a full page reload.
         index: true,
-        element: isAuthenticated() ? <Home /> : <Navigate to="/login" replace />
+        element: (
+          <PrivateRoute>
+            <Home />
+          </PrivateRoute>
+        )
       },
       {
         path: "login",
@@ -84,14 +68,19 @@ const router = createBrowserRouter([
           </PrivateRoute>
         )
       },
-      // Catch all route - redirect to home or login
+      // Catch all - send everything home; PrivateRoute redirects to /login
+      // from there if the session isn't valid.
       {
         path: "*",
-        element: isAuthenticated() ? <Navigate to="/" replace /> : <Navigate to="/login" replace />
+        element: <Navigate to="/" replace />
       }
     ]
   },
-]);
+], {
+  // '/' in dev, '/thor-wallet/' in a production build. Keeps every `to="/..."`
+  // in the app subpath-agnostic instead of hardcoding the Pages prefix.
+  basename: import.meta.env.BASE_URL,
+});
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>

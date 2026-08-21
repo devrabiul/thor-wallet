@@ -1,28 +1,15 @@
-import React from 'react';
-import { Navigate } from 'react-router-dom';
+import { Navigate, useLocation } from 'react-router-dom';
+import { isAuthenticated } from '../lib/auth';
 
 const PrivateRoute = ({ children }) => {
-    const isAuthenticated = localStorage.getItem('isAuthenticated') === 'true';
-    const loginTime = localStorage.getItem('loginTime');
-    
-    if (!isAuthenticated) {
-        return <Navigate to="/login" replace />;
+    const location = useLocation();
+
+    // Evaluated on every render, so a fresh login is picked up immediately.
+    if (!isAuthenticated()) {
+        // Pass the attempted route along so Login can send them back to it.
+        return <Navigate to="/login" replace state={{ from: location }} />;
     }
-    
-    // Check if session has expired
-    if (loginTime) {
-        const currentTime = Date.now();
-        const timeElapsed = currentTime - parseInt(loginTime);
-        
-        if (timeElapsed >= 3600000) { // 1 hour
-            localStorage.removeItem('isAuthenticated');
-            localStorage.removeItem('userRole');
-            localStorage.removeItem('username');
-            localStorage.removeItem('loginTime');
-            return <Navigate to="/login" replace />;
-        }
-    }
-    
+
     return children;
 };
 
