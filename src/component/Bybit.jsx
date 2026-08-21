@@ -1,11 +1,9 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { CiCircleCheck } from 'react-icons/ci';
 import { FaArrowLeftLong, FaBars } from 'react-icons/fa6';
 import { IoAccessibility, IoCopyOutline } from 'react-icons/io5';
-import { MdOutlineHeadsetMic, MdWifi, MdSignalCellularAlt, MdOutlineKeyboardArrowLeft } from 'react-icons/md';
-import { TbReport } from 'react-icons/tb';
+import { MdWifi, MdSignalCellularAlt, MdOutlineKeyboardArrowLeft } from 'react-icons/md';
 import { toPng } from 'html-to-image';
-import { HiOutlineMenuAlt2 } from 'react-icons/hi';
 import { FaRegCircle } from "react-icons/fa";
 
 const Bybit = () => {
@@ -83,12 +81,12 @@ const Bybit = () => {
         const batteryLevel = parseInt(percentage);
         const isLowBattery = batteryLevel <= 20;
 
-        let filledBars = 0;
-        if (batteryLevel >= 90) filledBars = 4;
-        else if (batteryLevel >= 70) filledBars = 3;
-        else if (batteryLevel >= 50) filledBars = 2;
-        else if (batteryLevel >= 30) filledBars = 1;
-        else filledBars = 0;
+        const filledBars =
+            batteryLevel >= 90 ? 4
+                : batteryLevel >= 70 ? 3
+                    : batteryLevel >= 50 ? 2
+                        : batteryLevel >= 30 ? 1
+                            : 0;
 
         const barColor = isLowBattery ? '#F97316' : '#FFFFFF';
 

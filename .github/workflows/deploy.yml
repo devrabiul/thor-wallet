@@ -32,9 +32,6 @@ jobs:
       - run: npm ci
 
       - name: Lint
-        # Non-blocking: the components carry pre-existing lint errors that
-        # predate this pipeline. Drop this line once they're cleaned up.
-        continue-on-error: true
         run: npm run lint
 
       - name: Build
