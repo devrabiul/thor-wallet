@@ -6,6 +6,7 @@ import { toPng } from 'html-to-image';
 import PhoneStatusBar from './PhoneStatusBar';
 import TemplateToolbar from './TemplateToolbar';
 import { getAddress, getFeeAmount } from '../../lib/config';
+import { CARD_HEIGHT, cardCaptureOptions } from '../../lib/card';
 import { randomBattery, randomSignal, randomSignalBars, randomTime, randomTxHash } from '../../lib/random';
 
 const THEME = {
@@ -102,12 +103,7 @@ const BybitWithdrawal = ({ dark = false }) => {
         setIsDownloading(true);
 
         try {
-            const dataUrl = await toPng(element, {
-                quality: 1,
-                pixelRatio: 2,
-                backgroundColor: c.bg,
-                cacheBust: true,
-            });
+            const dataUrl = await toPng(element, cardCaptureOptions(element, c.bg));
 
             const link = document.createElement('a');
             const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
@@ -128,7 +124,7 @@ const BybitWithdrawal = ({ dark = false }) => {
     // pb-24 keeps the card's CTA clear of the floating toolbar. It sits on the
     // page wrapper, not the card, so it stays out of the downloaded image.
     return (
-        <div className={`flex min-h-screen justify-center p-2 pb-24 font-sans ${dark ? 'bg-slate-800' : 'bg-gray-100'}`}>
+        <div className={`flex min-h-dvh justify-center p-2 pb-24 font-sans ${dark ? 'bg-slate-800' : 'bg-gray-100'}`}>
             <div className="mx-auto w-full max-w-[400px]">
                 <TemplateToolbar
                     dark={dark}
@@ -147,7 +143,7 @@ const BybitWithdrawal = ({ dark = false }) => {
                         backgroundColor: c.bg,
                         color: c.text,
                         fontFamily: "'Inter', system-ui, -apple-system, sans-serif",
-                        minHeight: '100vh',
+                        minHeight: `${CARD_HEIGHT}px`,
                         height: 'auto',
                     }}
                 >

@@ -7,6 +7,7 @@ import { MdOutlineHeadsetMic, MdWifi } from 'react-icons/md';
 import { TbReport } from 'react-icons/tb';
 import { toPng } from 'html-to-image';
 import { getAddress, getFeeAmount } from '../lib/config';
+import { CARD_HEIGHT, cardCaptureOptions } from '../lib/card';
 import { totalWithFee } from '../lib/amount';
 import { randomBattery, randomSignal, randomSignalBars, randomTime, randomTxHash } from '../lib/random';
 import SignalBars from './SignalBars';
@@ -83,12 +84,7 @@ const BinanceDark = () => {
         setIsDownloading(true);
         
         try {
-            const dataUrl = await toPng(element, {
-                quality: 1,
-                pixelRatio: 2,
-                backgroundColor: '#1E2329',
-                cacheBust: true,
-            });
+            const dataUrl = await toPng(element, cardCaptureOptions(element, '#1E2329'));
             
             const link = document.createElement('a');
             const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
@@ -159,7 +155,7 @@ const BinanceDark = () => {
     };
 
     return (
-        <div className="min-h-screen bg-black flex items-center justify-center p-1 sm:p-2 font-sans">
+        <div className="min-h-dvh bg-black flex items-center justify-center p-1 sm:p-2 font-sans">
             <div className="w-full max-w-[400px] mx-auto">
                 {/* Edit/View Toggle & Download Button - Mobile Optimized */}
                 <div className="mb-3 sm:mb-4 flex justify-end gap-2 sm:gap-3">
@@ -195,7 +191,7 @@ const BinanceDark = () => {
                         width: '100%',
                         maxWidth: '400px',
                         margin: '0 auto',
-                        minHeight: '100vh',
+                        minHeight: `${CARD_HEIGHT}px`,
                         height: 'auto'
                     }}
                 >

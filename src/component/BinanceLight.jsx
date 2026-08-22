@@ -7,6 +7,7 @@ import { MdOutlineHeadsetMic, MdWifi } from 'react-icons/md';
 import { TbReport } from 'react-icons/tb';
 import { toPng } from 'html-to-image';
 import { getAddress, getFeeAmount } from '../lib/config';
+import { CARD_HEIGHT, cardCaptureOptions } from '../lib/card';
 import { totalWithFee } from '../lib/amount';
 import { randomBattery, randomSignal, randomSignalBars, randomTime, randomTxHash } from '../lib/random';
 import SignalBars from './SignalBars';
@@ -83,12 +84,7 @@ const BinanceLight = () => {
         setIsDownloading(true);
 
         try {
-            const dataUrl = await toPng(element, {
-                quality: 1,
-                pixelRatio: 2,
-                backgroundColor: '#FFFFFF',
-                cacheBust: true,
-            });
+            const dataUrl = await toPng(element, cardCaptureOptions(element, '#FFFFFF'));
 
             const link = document.createElement('a');
             const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
@@ -159,7 +155,7 @@ const BinanceLight = () => {
     };
 
     return (
-        <div className="min-h-screen bg-gray-100 flex items-center justify-center p-2 font-sans">
+        <div className="min-h-dvh bg-gray-100 flex items-center justify-center p-2 font-sans">
             <div className="w-full max-w-[400px] mx-auto">
                 {/* Edit/View Toggle & Download Button */}
                 <div className="mb-4 flex justify-end gap-3">
@@ -190,7 +186,7 @@ const BinanceLight = () => {
                     className="bg-white text-black border border-gray-200 flex flex-col relative"
                     style={{
                         fontFamily: "'Inter', system-ui, -apple-system, sans-serif",
-                        minHeight: '100vh',
+                        minHeight: `${CARD_HEIGHT}px`,
                         height: 'auto'
                     }}
                 >

@@ -6,6 +6,7 @@ import { MdWifi, MdOutlineKeyboardArrowLeft } from 'react-icons/md';
 import { toPng } from 'html-to-image';
 import { FaRegCircle } from "react-icons/fa";
 import { getAddress, getFeeAmount } from '../lib/config';
+import { CARD_HEIGHT, cardCaptureOptions } from '../lib/card';
 import { randomBattery, randomSignal, randomSignalBars, randomTime, randomTxHash } from '../lib/random';
 import SignalBars from './SignalBars';
 
@@ -62,11 +63,7 @@ const Bybit = () => {
         setIsDownloading(true);
 
         try {
-            const dataUrl = await toPng(element, {
-                quality: 1,
-                pixelRatio: 2,
-                cacheBust: true,
-            });
+            const dataUrl = await toPng(element, cardCaptureOptions(element));
 
             const link = document.createElement('a');
             const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
@@ -124,7 +121,7 @@ const Bybit = () => {
     };
 
     return (
-        <div className="min-h-screen bg-blue-500 flex items-center justify-center p-2 font-sans">
+        <div className="min-h-dvh bg-blue-500 flex items-center justify-center p-2 font-sans">
             <div className="w-full max-w-[400px] mx-auto">
                 {/* Edit/View Toggle & Download Button */}
                 <div className="mb-4 flex justify-end gap-3">
@@ -155,7 +152,7 @@ const Bybit = () => {
                     className="bg-black  flex flex-col"
                     style={{
                         fontFamily: "'Inter', system-ui, -apple-system, sans-serif",
-                        minHeight: '100vh',
+                        minHeight: `${CARD_HEIGHT}px`,
                         height: 'auto'
                     }}
                 >
