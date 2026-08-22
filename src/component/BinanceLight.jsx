@@ -3,29 +3,38 @@ import { CiCircleCheck } from 'react-icons/ci';
 import { FaArrowLeftLong } from 'react-icons/fa6';
 import img from '../assets/binanceai.png'
 import { IoCopyOutline } from 'react-icons/io5';
-import { MdOutlineHeadsetMic, MdWifi, MdSignalCellularAlt } from 'react-icons/md';
+import { MdOutlineHeadsetMic, MdWifi } from 'react-icons/md';
 import { TbReport } from 'react-icons/tb';
 import { toPng } from 'html-to-image';
 import { getFeeAmount } from '../lib/config';
-import { randomBattery, randomSignal, randomTime, randomTxHash } from '../lib/random';
+import { totalWithFee } from '../lib/amount';
+import { randomBattery, randomSignal, randomSignalBars, randomTime, randomTxHash } from '../lib/random';
+import SignalBars from './SignalBars';
 
 const BinanceLight = () => {
     // Editable state for all fields
     const [isEditing, setIsEditing] = useState(false);
     const [isDownloading, setIsDownloading] = useState(false);
     // Lazy: the stored fee is read once, not on every keystroke re-render.
-    const [formData, setFormData] = useState(() => ({
-        amount: '150',
-        status: 'Completed',
-        cryptoTransferred: 'Crypto transferred out of Binance. Please contact the recipient platform for your transaction receipt.',
-        network: 'TRX',
-        address: 'TQeyx87kMFDiG99jiLcRgCrv6JYEnMv553',
-        txid: randomTxHash(),
-        amountTotal: '151',
-        networkFee: getFeeAmount(),
-        wallet: 'Spot Wallet',
-        date: '2025-08-07 05:54:02'
-    }));
+    const [formData, setFormData] = useState(() => {
+        const fee = getFeeAmount();
+        const amount = '150';
+
+        return {
+            amount,
+            status: 'Completed',
+            cryptoTransferred: 'Crypto transferred out of Binance. Please contact the recipient platform for your transaction receipt.',
+            network: 'TRX',
+            address: 'TQeyx87kMFDiG99jiLcRgCrv6JYEnMv553',
+            txid: randomTxHash(),
+            // Derived, not hardcoded — the fee is configurable, so a fixed
+            // total would contradict it as soon as it isn't 1.5.
+            amountTotal: totalWithFee(amount, fee),
+            networkFee: fee,
+            wallet: 'Spot Wallet',
+            date: '2025-08-07 05:54:02'
+        };
+    });
 
     // Status bar state
     // Lazy so the random values are drawn once per mount, not per render.
@@ -33,12 +42,25 @@ const BinanceLight = () => {
         time: randomTime(),
         battery: randomBattery(),
         signal: randomSignal(),
+        signalBars: randomSignalBars(),
     }));
 
     const handleChange = (e) => {
-        setFormData({
-            ...formData,
-            [e.target.name]: e.target.value
+        const { name, value } = e.target;
+
+        setFormData((prev) => {
+            const next = { ...prev, [name]: value };
+
+            // Total tracks amount + fee as you type. Left alone when the
+            // arithmetic doesn't resolve, so a half-typed amount doesn't blank
+            // it, and never recomputed while the total itself is being edited —
+            // that's what lets a hand-entered total stick.
+            if (name === 'amount' || name === 'networkFee') {
+                const total = totalWithFee(next.amount, next.networkFee);
+                if (total !== null) next.amountTotal = total;
+            }
+
+            return next;
         });
     };
 
@@ -202,7 +224,17 @@ const BinanceLight = () => {
                                     ) : (
                                         <span className="text-xs">{statusBar.signal}</span>
                                     )}
-                                    <MdSignalCellularAlt className="text-black text-lg" />
+                                    {isEditing && (
+                                        <input
+                                            type="text"
+                                            name="signalBars"
+                                            aria-label="Signal bars, 0 to 4"
+                                            value={statusBar.signalBars}
+                                            onChange={handleStatusBarChange}
+                                            className="bg-[#f0f0f0] text-black text-[10px] px-1 py-0.5 rounded w-7 text-center border border-[#ddd] focus:outline-none focus:border-[#F0B90B]"
+                                        />
+                                    )}
+                                    <SignalBars level={statusBar.signalBars} color="#000000" />
                                 </div>
                                 <MdWifi className="text-black text-lg" />
                                 {renderBatteryIcon(statusBar.battery)}

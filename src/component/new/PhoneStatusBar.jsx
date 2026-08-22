@@ -1,18 +1,38 @@
 import { MdWifi } from 'react-icons/md';
 
 // The signal indicator in the reference screenshots isn't the usual staircase —
-// it's a dot matrix: two solid columns of paired dots, then two dimmed bars.
-const SignalDots = ({ color }) => (
-    <svg width="17" height="12" viewBox="0 0 17 12" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <rect x="0" y="5.2" width="3.2" height="3" rx="1" fill={color} />
-        <rect x="0" y="8.8" width="3.2" height="3" rx="1" fill={color} />
-        <rect x="4.2" y="5.2" width="3.2" height="3" rx="1" fill={color} />
-        <rect x="4.2" y="8.8" width="3.2" height="3" rx="1" fill={color} />
-        <rect x="8.4" y="2.4" width="3.2" height="5.8" rx="1" fill={color} opacity="0.35" />
-        <rect x="8.4" y="8.8" width="3.2" height="3" rx="1" fill={color} opacity="0.35" />
-        <rect x="12.6" y="0" width="3.2" height="11.8" rx="1" fill={color} opacity="0.35" />
-    </svg>
-);
+// it's a dot matrix where the near columns are paired dots and the far ones are
+// tall bars. That per-column shape is fixed art; only the opacity moves, so a
+// column going from dim to lit keeps the silhouette the screenshots have.
+const SIGNAL_COLUMNS = [
+    [{ y: 5.2, height: 3 }, { y: 8.8, height: 3 }],
+    [{ y: 5.2, height: 3 }, { y: 8.8, height: 3 }],
+    [{ y: 2.4, height: 5.8 }, { y: 8.8, height: 3 }],
+    [{ y: 0, height: 11.8 }],
+];
+
+const SignalDots = ({ color, level }) => {
+    const lit = Math.max(0, Math.min(SIGNAL_COLUMNS.length, parseInt(level, 10) || 0));
+
+    return (
+        <svg width="17" height="12" viewBox="0 0 17 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+            {SIGNAL_COLUMNS.map((rects, column) =>
+                rects.map((rect) => (
+                    <rect
+                        key={`${column}-${rect.y}`}
+                        x={column * 4.2}
+                        y={rect.y}
+                        width="3.2"
+                        height={rect.height}
+                        rx="1"
+                        fill={color}
+                        opacity={column < lit ? 1 : 0.35}
+                    />
+                )),
+            )}
+        </svg>
+    );
+};
 
 // A filled pill with the percentage printed inside it. The charged portion is
 // drawn in the foreground colour and the digits in the card's background
@@ -71,7 +91,18 @@ const PhoneStatusBar = ({ value, onChange, isEditing, fg, bg, inputClass }) => {
             )}
 
             <div className="flex items-center gap-1.5">
-                <SignalDots color={fg} />
+                <SignalDots color={fg} level={value.signalBars} />
+
+                {isEditing && (
+                    <input
+                        type="text"
+                        name="signalBars"
+                        aria-label="Signal bars, 0 to 4"
+                        value={value.signalBars}
+                        onChange={onChange}
+                        className={`w-8 text-center text-xs ${inputClass}`}
+                    />
+                )}
 
                 {isEditing ? (
                     <input

@@ -8,7 +8,8 @@ import { toPng } from 'html-to-image';
 import PhoneStatusBar from './PhoneStatusBar';
 import TemplateToolbar from './TemplateToolbar';
 import { getFeeAmount } from '../../lib/config';
-import { randomBattery, randomSignal, randomTime, randomTxHash } from '../../lib/random';
+import { totalWithFee } from '../../lib/amount';
+import { randomBattery, randomSignal, randomSignalBars, randomTime, randomTxHash } from '../../lib/random';
 
 const THEME = {
     light: {
@@ -110,29 +111,51 @@ const BinanceWithdrawal = ({ dark = false }) => {
         time: randomTime(),
         battery: randomBattery(),
         signal: randomSignal({ wifi: true }),
+        signalBars: randomSignalBars(),
     }));
 
     // Lazy: the stored fee is read once, not on every keystroke re-render.
-    const [formData, setFormData] = useState(() => ({
-        amount: '1,998.5',
-        status: 'Completed',
-        note: NOTES.Completed,
-        network: 'TRX',
-        address: 'TK2NgwbxmY2uksJgwcVTGQ6knbT1hk2SJn',
-        txid: randomTxHash(),
-        amountTotal: '2,000',
-        networkFee: getFeeAmount(),
-        wallet: 'Spot Account',
-        date: '2026-08-19 12:50:30',
-    }));
+    const [formData, setFormData] = useState(() => {
+        const fee = getFeeAmount();
+        const amount = '1,998.5';
+
+        return {
+            amount,
+            status: 'Completed',
+            note: NOTES.Completed,
+            network: 'TRX',
+            address: 'TK2NgwbxmY2uksJgwcVTGQ6knbT1hk2SJn',
+            txid: randomTxHash(),
+            // Derived, not hardcoded — the fee is configurable, so a fixed
+            // total would contradict it as soon as it isn't 1.5.
+            amountTotal: totalWithFee(amount, fee),
+            networkFee: fee,
+            wallet: 'Spot Account',
+            date: '2026-08-19 12:50:30',
+        };
+    });
 
     const handleChange = (e) => {
         const { name, value } = e.target;
-        setFormData((prev) => ({
-            ...prev,
-            [name]: value,
-            ...(name === 'status' ? { note: NOTES[value] } : null),
-        }));
+
+        setFormData((prev) => {
+            const next = {
+                ...prev,
+                [name]: value,
+                ...(name === 'status' ? { note: NOTES[value] } : null),
+            };
+
+            // Total tracks amount + fee as you type. Left alone when the
+            // arithmetic doesn't resolve, so a half-typed amount doesn't blank
+            // it, and never recomputed while the total itself is being edited —
+            // that's what lets a hand-entered total stick.
+            if (name === 'amount' || name === 'networkFee') {
+                const total = totalWithFee(next.amount, next.networkFee);
+                if (total !== null) next.amountTotal = total;
+            }
+
+            return next;
+        });
     };
 
     const handleStatusBarChange = (e) => {

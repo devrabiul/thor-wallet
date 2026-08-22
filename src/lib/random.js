@@ -18,6 +18,10 @@ export const randomTime = () => {
     return `${hour}:${String(minute).padStart(2, '0')}`;
 };
 
+// 2–4 of 4. One bar reads as a phone that can barely reach the network, which
+// undercuts a receipt for a transaction that just went through.
+export const randomSignalBars = () => String(2 + Math.floor(Math.random() * 3));
+
 const CELLULAR = ['5G', '4G', 'LTE'];
 
 // The V1 status bars print this label beside a permanently drawn cellular

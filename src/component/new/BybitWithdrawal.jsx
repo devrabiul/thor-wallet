@@ -6,7 +6,7 @@ import { toPng } from 'html-to-image';
 import PhoneStatusBar from './PhoneStatusBar';
 import TemplateToolbar from './TemplateToolbar';
 import { getFeeAmount } from '../../lib/config';
-import { randomBattery, randomSignal, randomTime, randomTxHash } from '../../lib/random';
+import { randomBattery, randomSignal, randomSignalBars, randomTime, randomTxHash } from '../../lib/random';
 
 const THEME = {
     light: {
@@ -67,6 +67,7 @@ const BybitWithdrawal = ({ dark = false }) => {
         time: randomTime(),
         battery: randomBattery(),
         signal: randomSignal({ wifi: true }),
+        signalBars: randomSignalBars(),
     }));
 
     // Lazy: the stored fee is read once, not on every keystroke re-render.

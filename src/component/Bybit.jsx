@@ -2,11 +2,12 @@ import { useState } from 'react';
 import { CiCircleCheck } from 'react-icons/ci';
 import { FaArrowLeftLong, FaBars } from 'react-icons/fa6';
 import { IoAccessibility, IoCopyOutline } from 'react-icons/io5';
-import { MdWifi, MdSignalCellularAlt, MdOutlineKeyboardArrowLeft } from 'react-icons/md';
+import { MdWifi, MdOutlineKeyboardArrowLeft } from 'react-icons/md';
 import { toPng } from 'html-to-image';
 import { FaRegCircle } from "react-icons/fa";
 import { getFeeAmount } from '../lib/config';
-import { randomBattery, randomSignal, randomTime, randomTxHash } from '../lib/random';
+import { randomBattery, randomSignal, randomSignalBars, randomTime, randomTxHash } from '../lib/random';
+import SignalBars from './SignalBars';
 
 const Bybit = () => {
     // Editable state for all fields
@@ -19,6 +20,7 @@ const Bybit = () => {
         time: randomTime(),
         battery: randomBattery(),
         signal: randomSignal(),
+        signalBars: randomSignalBars(),
     }));
 
     // Form data state - Bybit style
@@ -187,7 +189,17 @@ const Bybit = () => {
                                     ) : (
                                         <span className="text-xs">{statusBar.signal}</span>
                                     )}
-                                    <MdSignalCellularAlt className="text-white text-lg" />
+                                    {isEditing && (
+                                        <input
+                                            type="text"
+                                            name="signalBars"
+                                            aria-label="Signal bars, 0 to 4"
+                                            value={statusBar.signalBars}
+                                            onChange={handleStatusBarChange}
+                                            className="bg-[#1C1C1E] text-white text-[10px] px-1 py-0.5 rounded w-7 text-center border border-[#3C3C3C] focus:outline-none focus:border-[#F7A600]"
+                                        />
+                                    )}
+                                    <SignalBars level={statusBar.signalBars} color="#FFFFFF" />
                                 </div>
                                 <MdWifi className="text-white text-lg" />
                                 {renderBatteryIcon(statusBar.battery)}
