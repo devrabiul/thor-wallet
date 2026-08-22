@@ -1,0 +1,15 @@
+# SPA fallback for Apache. React Router owns the URLs, but Apache looks for a
+# real file first and 404s on a hard refresh of /login or /new/bybit-light.
+# Anything that isn't an existing file or directory gets index.html instead.
+#
+# Lives in public/ so `vite build` copies it into dist/ on every build.
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteBase /
+
+  RewriteCond %{REQUEST_FILENAME} -f [OR]
+  RewriteCond %{REQUEST_FILENAME} -d
+  RewriteRule ^ - [L]
+
+  RewriteRule ^ index.html [L]
+</IfModule>
