@@ -158,6 +158,11 @@ const TemplateGrid = ({ templates, badge, id }) => (
 const shortAddress = (address) =>
     address.length > 18 ? `${address.slice(0, 7)}…${address.slice(-6)}` : address;
 
+const isDefaultValues = (values) =>
+    values.fee === DEFAULT_FEE &&
+    values.address === DEFAULT_ADDRESS &&
+    values.showAssistant === DEFAULT_SHOW_ASSISTANT;
+
 // One instance of this lives in Home and feeds both the desktop panel and the
 // mobile sheet. Two independent copies would drift the moment one of them
 // saved, and the hidden one would still be showing the old values on resize.
@@ -196,10 +201,11 @@ const useSettings = () => {
         values,
         draft,
         saved,
-        isDefault:
-            values.fee === DEFAULT_FEE &&
-            values.address === DEFAULT_ADDRESS &&
-            values.showAssistant === DEFAULT_SHOW_ASSISTANT,
+        // The draft counts too: reset also puts the fields back, so with
+        // defaults stored and an edited-but-unsaved field it still has work to
+        // do — keying this off `values` alone left the button dead in exactly
+        // the case people press it in.
+        isDefault: isDefaultValues(values) && isDefaultValues(draft),
         setField: (field, value) => setDraft((prev) => ({ ...prev, [field]: value })),
         save: () =>
             flashSaved({
