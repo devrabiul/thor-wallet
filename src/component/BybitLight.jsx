@@ -5,6 +5,7 @@ import { IoAccessibility, IoCopyOutline } from 'react-icons/io5';
 import { MdOutlineHeadsetMic, MdWifi, MdSignalCellularAlt, MdOutlineKeyboardArrowLeft } from 'react-icons/md';
 import { toPng } from 'html-to-image';
 import { FaRegCircle } from "react-icons/fa";
+import { getFeeAmount } from '../lib/config';
 
 const BybitLight = () => {
     // Editable state for all fields
@@ -19,16 +20,17 @@ const BybitLight = () => {
     });
 
     // Form data state - Bybit style
-    const [formData, setFormData] = useState({
+    // Lazy: the stored fee is read once, not on every keystroke re-render.
+    const [formData, setFormData] = useState(() => ({
         quantity: '103.3553',
         status: 'Withdrawal Completed',
         withdrawalAccount: 'Funding Account',
-        fees: '1',
+        fees: getFeeAmount(),
         chainType: 'TRON (TRC20)',
         time: '2025-08-26 15:01:22',
         withdrawalAddress: 'TDdBRfZiMAGV6dzKURny8PTWWj3NbqgcGn',
         transactionHash: 'e6406483810e308348e4808d001ffab078c8a1a0e8fad51352f5f4dd32ab614e'
-    });
+    }));
 
     const handleChange = (e) => {
         setFormData({

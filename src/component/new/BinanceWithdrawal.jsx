@@ -6,6 +6,7 @@ import { MdOutlineHeadsetMic } from 'react-icons/md';
 import { TbReport } from 'react-icons/tb';
 import { toPng } from 'html-to-image';
 import PhoneStatusBar from './PhoneStatusBar';
+import { getFeeAmount } from '../../lib/config';
 
 const THEME = {
     light: {
@@ -108,7 +109,8 @@ const BinanceWithdrawal = ({ dark = false }) => {
         signal: '4G',
     });
 
-    const [formData, setFormData] = useState({
+    // Lazy: the stored fee is read once, not on every keystroke re-render.
+    const [formData, setFormData] = useState(() => ({
         amount: '1,998.5',
         status: 'Completed',
         note: NOTES.Completed,
@@ -116,10 +118,10 @@ const BinanceWithdrawal = ({ dark = false }) => {
         address: 'TK2NgwbxmY2uksJgwcVTGQ6knbT1hk2SJn',
         txid: '0259ccb6a3a2792e58d950768bb7d1e1217e3331b1a84c3d0a7176cef1925870',
         amountTotal: '2,000',
-        networkFee: '1.5',
+        networkFee: getFeeAmount(),
         wallet: 'Spot Account',
         date: '2026-08-19 12:50:30',
-    });
+    }));
 
     const handleChange = (e) => {
         const { name, value } = e.target;

@@ -6,12 +6,14 @@ import img from '../assets/binanceai.png';
 import { MdOutlineHeadsetMic, MdWifi, MdSignalCellularAlt } from 'react-icons/md';
 import { TbReport } from 'react-icons/tb';
 import { toPng } from 'html-to-image';
+import { getFeeAmount } from '../lib/config';
 
 const BinanceDark = () => {
     // Editable state for all fields
     const [isEditing, setIsEditing] = useState(false);
     const [isDownloading, setIsDownloading] = useState(false);
-    const [formData, setFormData] = useState({
+    // Lazy: the stored fee is read once, not on every keystroke re-render.
+    const [formData, setFormData] = useState(() => ({
         amount: '150',
         status: 'Completed',
         cryptoTransferred: 'Crypto transferred out of Binance. Please contact the recipient platform for your transaction receipt.',
@@ -19,10 +21,10 @@ const BinanceDark = () => {
         address: 'TQeyx87kMFDiG99jiLcRgCrv6JYEnMv553',
         txid: '6695183afe317c6b990dcb339983a9f5edfcd28feb8f7325fcde6909a25730e2',
         amountTotal: '151',
-        networkFee: '1',
+        networkFee: getFeeAmount(),
         wallet: 'Spot Wallet',
         date: '2025-08-07 05:54:02'
-    });
+    }));
 
     // Status bar state
     const [statusBar, setStatusBar] = useState({

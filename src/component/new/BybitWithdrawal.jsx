@@ -4,6 +4,7 @@ import { FaArrowLeftLong } from 'react-icons/fa6';
 import { IoCopyOutline } from 'react-icons/io5';
 import { toPng } from 'html-to-image';
 import PhoneStatusBar from './PhoneStatusBar';
+import { getFeeAmount } from '../../lib/config';
 
 const THEME = {
     light: {
@@ -65,16 +66,17 @@ const BybitWithdrawal = ({ dark = false }) => {
         signal: dark ? '4G' : 'wifi',
     });
 
-    const [formData, setFormData] = useState({
+    // Lazy: the stored fee is read once, not on every keystroke re-render.
+    const [formData, setFormData] = useState(() => ({
         quantity: '1,000',
         status: 'Withdrawal Completed',
         withdrawalAccount: 'Funding Account',
-        fees: '1',
+        fees: getFeeAmount(),
         chainType: 'TRON (TRC20)',
         time: '2026-08-19 22:32:57',
         withdrawalAddress: 'THPZzVKcteuzLBheh1Q4jAmTiNwcxc5ymA',
         transactionHash: '52d01d73c523c13b3ca484910c9043bf9db5d4bb0db7f3fe3f1b4dbf3ad5d9ba',
-    });
+    }));
 
     const handleChange = (e) => {
         setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));

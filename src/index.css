@@ -1,2 +1,87 @@
 @import "tailwindcss";
 @plugin "daisyui";
+
+/* Browser autofill on the Login fields.
+ *
+ * Picking a saved username makes Chrome paint the field with its own
+ * background (#E8F0FE), which is darker and bluer than our indigo-50 fill.
+ * That background comes from the UA sheet as !important, so `background-color`
+ * can't override it — an inset shadow tall enough to cover the field is the
+ * only way to hide it.
+ *
+ * box-shadow is also what Tailwind uses for `shadow-sm shadow-indigo-200/50`
+ * and for `focus:ring-2`, so overriding it here would drop both. The trailing
+ * --thor-autofill-ring carries whichever of the two applies; it is swapped on
+ * :focus below and is only ever read inside the :autofill rule.
+ *
+ * Scoped to .thor-field on purpose: other screens (BinanceDark and friends)
+ * have their own field colours and would be wrong with an indigo fill.
+ *
+ * :-webkit-autofill (older Safari) and :autofill are separate rules, not one
+ * selector list: an unrecognised selector invalidates the whole list, so a
+ * combined list would be dropped wholesale by whichever engine lacks one.
+ * Keeping the ring out of these rules also matters — when both carried a
+ * :focus variant, Lightning CSS deduped one away and the focus indicator
+ * vanished on autofilled fields.
+ */
+.thor-field {
+    --thor-autofill-ring:
+        0 1px 3px 0 color-mix(in oklab, var(--color-indigo-200) 50%, transparent),
+        0 1px 2px -1px color-mix(in oklab, var(--color-indigo-200) 50%, transparent);
+}
+
+.thor-field:focus {
+    --thor-autofill-ring: 0 0 0 2px var(--color-indigo-600);
+}
+
+.thor-field:-webkit-autofill {
+    box-shadow:
+        0 0 0 1000px var(--color-indigo-50) inset,
+        var(--thor-autofill-ring);
+    /* The UA also forces its own text colour; `color` alone won't win. */
+    -webkit-text-fill-color: var(--color-slate-800);
+    caret-color: var(--color-slate-800);
+}
+
+.thor-field:autofill {
+    box-shadow:
+        0 0 0 1000px var(--color-indigo-50) inset,
+        var(--thor-autofill-ring);
+    -webkit-text-fill-color: var(--color-slate-800);
+    caret-color: var(--color-slate-800);
+}
+
+/* Mobile fee sheet. A sheet that appears instantly reads as a page swap
+ * rather than something sliding in over the list underneath it. */
+@keyframes thor-sheet-in {
+    from {
+        transform: translateY(100%);
+    }
+    to {
+        transform: translateY(0);
+    }
+}
+
+@keyframes thor-fade-in {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+.thor-sheet {
+    animation: thor-sheet-in 220ms cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+.thor-scrim {
+    animation: thor-fade-in 220ms ease-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .thor-sheet,
+    .thor-scrim {
+        animation: none;
+    }
+}
