@@ -1,38 +1,5 @@
 import { MdWifi } from 'react-icons/md';
-
-// The signal indicator in the reference screenshots isn't the usual staircase —
-// it's a dot matrix where the near columns are paired dots and the far ones are
-// tall bars. That per-column shape is fixed art; only the opacity moves, so a
-// column going from dim to lit keeps the silhouette the screenshots have.
-const SIGNAL_COLUMNS = [
-    [{ y: 5.2, height: 3 }, { y: 8.8, height: 3 }],
-    [{ y: 5.2, height: 3 }, { y: 8.8, height: 3 }],
-    [{ y: 2.4, height: 5.8 }, { y: 8.8, height: 3 }],
-    [{ y: 0, height: 11.8 }],
-];
-
-const SignalDots = ({ color, level }) => {
-    const lit = Math.max(0, Math.min(SIGNAL_COLUMNS.length, parseInt(level, 10) || 0));
-
-    return (
-        <svg width="17" height="12" viewBox="0 0 17 12" fill="none" xmlns="http://www.w3.org/2000/svg">
-            {SIGNAL_COLUMNS.map((rects, column) =>
-                rects.map((rect) => (
-                    <rect
-                        key={`${column}-${rect.y}`}
-                        x={column * 4.2}
-                        y={rect.y}
-                        width="3.2"
-                        height={rect.height}
-                        rx="1"
-                        fill={color}
-                        opacity={column < lit ? 1 : 0.35}
-                    />
-                )),
-            )}
-        </svg>
-    );
-};
+import SignalBars from '../SignalBars';
 
 // A filled pill with the percentage printed inside it. The charged portion is
 // drawn in the foreground colour and the digits in the card's background
@@ -91,7 +58,9 @@ const PhoneStatusBar = ({ value, onChange, isEditing, fg, bg, inputClass }) => {
             )}
 
             <div className="flex items-center gap-1.5">
-                <SignalDots color={fg} level={value.signalBars} />
+                {/* Same staircase the V1 status bars draw — the dot-matrix this
+                    replaced read as two stacks of dots rather than signal. */}
+                <SignalBars color={fg} level={value.signalBars} />
 
                 {isEditing && (
                     <input
