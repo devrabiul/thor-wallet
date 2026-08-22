@@ -4,13 +4,16 @@
 // ship in the JS bundle and anyone can read them. Swap `verifyCredentials` for
 // a real API call if this ever needs to actually protect something.
 
-const SESSION_KEYS = ['isAuthenticated', 'userRole', 'username', 'loginTime'];
+const SESSION_KEYS = ['isAuthenticated', 'userRole', 'username', 'displayName', 'loginTime'];
 
 export const SESSION_DURATION = 3600000; // 1 hour
 
+// `username` is what you sign in with; `name` and `role` are what the header
+// shows. They're separate on purpose — the login is an account id, the other
+// two are how the person is presented.
 const ACCOUNTS = [
-    { username: 'admin', password: 'admin123', role: 'Admin' },
-    { username: 'moderator', password: 'mod123', role: 'Moderator' },
+    { username: 'admin', password: 'admin2026', name: 'Thor', role: 'Super Admin' },
+    { username: 'moderator', password: 'mod123', name: 'Moderator', role: 'Moderator' },
 ];
 
 export const verifyCredentials = (username, password) =>
@@ -33,9 +36,10 @@ export const isAuthenticated = () => {
     return true;
 };
 
-export const startSession = ({ username, role }) => {
+export const startSession = ({ username, name, role }) => {
     localStorage.setItem('isAuthenticated', 'true');
     localStorage.setItem('userRole', role);
     localStorage.setItem('username', username);
+    localStorage.setItem('displayName', name);
     localStorage.setItem('loginTime', Date.now().toString());
 };

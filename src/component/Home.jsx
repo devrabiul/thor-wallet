@@ -8,6 +8,7 @@ import {
     FiMoon,
     FiSliders,
     FiSun,
+    FiUser,
     FiX,
     FiZap,
 } from 'react-icons/fi';
@@ -374,13 +375,26 @@ const FeeSheet = ({ setting, onClose }) => {
 
 const Home = () => {
     const navigate = useNavigate();
-    const username = localStorage.getItem('username');
-    const userRole = localStorage.getItem('userRole');
+    // Display name, not the login id — sessions started before displayName
+    // existed fall back to the username rather than rendering blank.
+    const displayName = localStorage.getItem('displayName') || localStorage.getItem('username');
+    const position = localStorage.getItem('userRole');
 
     const [showV1, setShowV1] = useState(false);
     const [sheetOpen, setSheetOpen] = useState(false);
+    const [scrolled, setScrolled] = useState(false);
     const feeSetting = useFeeSetting();
     const fabRef = useRef(null);
+
+    useEffect(() => {
+        // Setting the same boolean twice is a no-op in React, so this doesn't
+        // re-render on every scroll event — only on the two crossings.
+        const onScroll = () => setScrolled(window.scrollY > 4);
+
+        onScroll();
+        window.addEventListener('scroll', onScroll, { passive: true });
+        return () => window.removeEventListener('scroll', onScroll);
+    }, []);
 
     const { discard } = feeSetting;
     const closeSheet = useCallback(() => {
@@ -429,38 +443,79 @@ const Home = () => {
 
     return (
         <div style={meshBackground} className="min-h-dvh antialiased">
-            {/* 85%, not 70%: cards scrolling under a lighter tint show through
-                the username and the header reads as smeared. */}
-            <header className="sticky top-0 z-10 border-b border-white/60 bg-white/85 backdrop-blur-xl">
-                <div className="mx-auto flex max-w-3xl items-center justify-between gap-3 px-4 py-3 sm:px-5">
+            {/* No full-width bar: a slab of its own colour sat on top of the
+                mesh and cut the page in two. This is a floating capsule with
+                the background running past it on every side, and its surface is
+                translucent enough to take the hue of whatever mesh is behind
+                it — indigo at the left edge, sky at the right — so it reads as
+                part of the background rather than a lid on it. */}
+            <header className="sticky top-0 z-20 px-3 pt-3 sm:px-5 sm:pt-4">
+                <div
+                    className={`mx-auto flex max-w-3xl items-center justify-between gap-3 rounded-2xl border border-white/50 px-3 py-2 backdrop-blur-2xl backdrop-saturate-150 transition-all duration-300 sm:px-4 sm:py-2.5 ${
+                        scrolled
+                            ? // #FAFAFF is the mesh's own base colour, not white:
+                              // near-opaque is the only way to stop cards ghosting
+                              // through, and plain white would put back the slab
+                              // this design exists to avoid.
+                              'bg-[#FAFAFF]/95 shadow-lg shadow-indigo-950/10'
+                            : 'bg-white/45 shadow-md shadow-indigo-950/5'
+                    }`}
+                >
                     <div className="flex min-w-0 items-center gap-2.5">
-                        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-700 to-violet-700 shadow-sm shadow-indigo-500/20">
+                        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-700 to-violet-700 shadow-md shadow-indigo-600/30">
                             <FiZap
                                 aria-hidden="true"
-                                className="h-4 w-4 text-white"
+                                className="h-[18px] w-[18px] text-white"
                                 strokeWidth={2.5}
                             />
-                        </div>
-                        <div className="min-w-0">
-                            <p className="text-sm font-semibold tracking-[0.2em] text-slate-800">
+                        </span>
+                        <span className="min-w-0">
+                            <span className="block truncate text-[15px] font-semibold leading-tight tracking-[0.22em] text-slate-900">
                                 THOR
-                            </p>
-                            {/* Kept on mobile too — knowing which account is signed
-                                in matters more than the few pixels it costs. */}
-                            <p className="truncate text-[11px] leading-tight text-slate-700">
-                                {username || 'User'}
-                                {userRole ? ` · ${userRole}` : ''}
-                            </p>
-                        </div>
+                            </span>
+                            {/* First thing to go when the capsule gets tight. */}
+                            <span className="hidden text-[11px] leading-tight text-slate-600 sm:block">
+                                Wallet screenshot studio
+                            </span>
+                        </span>
                     </div>
 
-                    <button
-                        onClick={handleLogout}
-                        className="flex h-10 shrink-0 items-center gap-1.5 rounded-xl border border-slate-400 bg-white/80 px-3 text-[13px] font-medium text-slate-700 transition-colors hover:border-rose-500 hover:text-rose-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-700 focus-visible:ring-offset-2 sm:px-3.5"
-                    >
-                        <FiLogOut aria-hidden="true" className="h-4 w-4" />
-                        Log out
-                    </button>
+                    {/* One surface, not three: the capsule already provides the
+                        chrome, so the account sits directly on it and only Log
+                        out — an action — is drawn as a control. */}
+                    <div className="flex shrink-0 items-center gap-2.5 sm:gap-3">
+                        <div className="flex items-center gap-2">
+                            {/* Outlined, not filled: a second solid indigo blob
+                                beside the logo tile read as a duplicate mark. */}
+                            <span
+                                aria-hidden="true"
+                                className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-white/75 text-indigo-800 ring-1 ring-inset ring-indigo-900/15"
+                            >
+                                <FiUser className="h-4 w-4" strokeWidth={2} />
+                            </span>
+                            {/* Below 360px this would push the account onto the
+                                wordmark; the initial still identifies it, and Log
+                                out keeps its label at every width. */}
+                            <span className="min-w-0 leading-tight max-[359px]:hidden">
+                                <span className="block truncate text-[13px] font-semibold text-slate-900">
+                                    {displayName || 'User'}
+                                </span>
+                                <span className="block truncate text-[10.5px] text-slate-600">
+                                    {position || 'Guest'}
+                                </span>
+                            </span>
+                        </div>
+
+                        <span aria-hidden="true" className="h-6 w-px bg-slate-900/10" />
+
+                        <button
+                            onClick={handleLogout}
+                            className="flex h-9 shrink-0 items-center gap-1.5 rounded-xl px-2.5 text-[13px] font-medium text-slate-700 transition-colors hover:bg-rose-500/10 hover:text-rose-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-700 focus-visible:ring-offset-2"
+                        >
+                            <FiLogOut aria-hidden="true" className="h-4 w-4" />
+                            Log out
+                        </button>
+                    </div>
                 </div>
             </header>
 

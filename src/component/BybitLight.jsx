@@ -6,6 +6,7 @@ import { MdOutlineHeadsetMic, MdWifi, MdSignalCellularAlt, MdOutlineKeyboardArro
 import { toPng } from 'html-to-image';
 import { FaRegCircle } from "react-icons/fa";
 import { getFeeAmount } from '../lib/config';
+import { randomBattery, randomSignal, randomTime, randomTxHash } from '../lib/random';
 
 const BybitLight = () => {
     // Editable state for all fields
@@ -13,11 +14,12 @@ const BybitLight = () => {
     const [isDownloading, setIsDownloading] = useState(false);
 
     // Status bar state
-    const [statusBar, setStatusBar] = useState({
-        time: '9:41',
-        battery: '98',
-        signal: '4G'
-    });
+    // Lazy so the random values are drawn once per mount, not per render.
+    const [statusBar, setStatusBar] = useState(() => ({
+        time: randomTime(),
+        battery: randomBattery(),
+        signal: randomSignal(),
+    }));
 
     // Form data state - Bybit style
     // Lazy: the stored fee is read once, not on every keystroke re-render.
@@ -29,7 +31,7 @@ const BybitLight = () => {
         chainType: 'TRON (TRC20)',
         time: '2025-08-26 15:01:22',
         withdrawalAddress: 'TDdBRfZiMAGV6dzKURny8PTWWj3NbqgcGn',
-        transactionHash: 'e6406483810e308348e4808d001ffab078c8a1a0e8fad51352f5f4dd32ab614e'
+        transactionHash: randomTxHash()
     }));
 
     const handleChange = (e) => {

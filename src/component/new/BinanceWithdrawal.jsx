@@ -6,7 +6,9 @@ import { MdOutlineHeadsetMic } from 'react-icons/md';
 import { TbReport } from 'react-icons/tb';
 import { toPng } from 'html-to-image';
 import PhoneStatusBar from './PhoneStatusBar';
+import TemplateToolbar from './TemplateToolbar';
 import { getFeeAmount } from '../../lib/config';
+import { randomBattery, randomSignal, randomTime, randomTxHash } from '../../lib/random';
 
 const THEME = {
     light: {
@@ -103,11 +105,12 @@ const BinanceWithdrawal = ({ dark = false }) => {
     const [isEditing, setIsEditing] = useState(false);
     const [isDownloading, setIsDownloading] = useState(false);
 
-    const [statusBar, setStatusBar] = useState({
-        time: '12:52',
-        battery: '43',
-        signal: '4G',
-    });
+    // Lazy so the random values are drawn once per mount, not per render.
+    const [statusBar, setStatusBar] = useState(() => ({
+        time: randomTime(),
+        battery: randomBattery(),
+        signal: randomSignal({ wifi: true }),
+    }));
 
     // Lazy: the stored fee is read once, not on every keystroke re-render.
     const [formData, setFormData] = useState(() => ({
@@ -116,7 +119,7 @@ const BinanceWithdrawal = ({ dark = false }) => {
         note: NOTES.Completed,
         network: 'TRX',
         address: 'TK2NgwbxmY2uksJgwcVTGQ6knbT1hk2SJn',
-        txid: '0259ccb6a3a2792e58d950768bb7d1e1217e3331b1a84c3d0a7176cef1925870',
+        txid: randomTxHash(),
         amountTotal: '2,000',
         networkFee: getFeeAmount(),
         wallet: 'Spot Account',
@@ -170,31 +173,20 @@ const BinanceWithdrawal = ({ dark = false }) => {
 
     const { color: statusColor, Icon: StatusIcon } = STATUS_STYLE[formData.status];
 
+    // pb-24 keeps the card's CTA clear of the floating toolbar. It sits on the
+    // page wrapper, not the card, so it stays out of the downloaded image.
     return (
-        <div className={`flex min-h-screen justify-center p-2 font-sans ${dark ? 'bg-slate-800' : 'bg-gray-100'}`}>
+        <div className={`flex min-h-screen justify-center p-2 pb-24 font-sans ${dark ? 'bg-slate-800' : 'bg-gray-100'}`}>
             <div className="mx-auto w-full max-w-[400px]">
-                {/* Edit/View Toggle & Download Button */}
-                <div className="mb-4 flex justify-end gap-3">
-                    <button
-                        onClick={() => setIsEditing(!isEditing)}
-                        className="flex items-center gap-2 rounded-lg bg-white px-3 py-2 text-black transition-colors"
-                    >
-                        {isEditing ? (
-                            <span className="text-lg text-green-500">✓</span>
-                        ) : (
-                            <span className="text-lg text-blue-400">✎</span>
-                        )}
-                        {isEditing ? 'View Mode' : 'Edit Mode'}
-                    </button>
-                    <button
-                        onClick={handleDownload}
-                        disabled={isDownloading}
-                        className="flex items-center gap-2 rounded-lg bg-[#F0B90B] px-4 py-2 font-semibold text-black transition-colors hover:bg-[#FCD535] disabled:cursor-not-allowed disabled:opacity-50"
-                    >
-                        <span className="text-lg">{isDownloading ? '⏳' : '⬇️'}</span>
-                        {isDownloading ? 'Downloading...' : 'Download as Image'}
-                    </button>
-                </div>
+                <TemplateToolbar
+                    dark={dark}
+                    accent={YELLOW}
+                    accentHover={BUTTON}
+                    isEditing={isEditing}
+                    onToggleEdit={() => setIsEditing(!isEditing)}
+                    isDownloading={isDownloading}
+                    onDownload={handleDownload}
+                />
 
                 <div
                     id="withdrawal-card"

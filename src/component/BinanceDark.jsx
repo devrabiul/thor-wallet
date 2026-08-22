@@ -7,6 +7,7 @@ import { MdOutlineHeadsetMic, MdWifi, MdSignalCellularAlt } from 'react-icons/md
 import { TbReport } from 'react-icons/tb';
 import { toPng } from 'html-to-image';
 import { getFeeAmount } from '../lib/config';
+import { randomBattery, randomSignal, randomTime, randomTxHash } from '../lib/random';
 
 const BinanceDark = () => {
     // Editable state for all fields
@@ -19,7 +20,7 @@ const BinanceDark = () => {
         cryptoTransferred: 'Crypto transferred out of Binance. Please contact the recipient platform for your transaction receipt.',
         network: 'TRX',
         address: 'TQeyx87kMFDiG99jiLcRgCrv6JYEnMv553',
-        txid: '6695183afe317c6b990dcb339983a9f5edfcd28feb8f7325fcde6909a25730e2',
+        txid: randomTxHash(),
         amountTotal: '151',
         networkFee: getFeeAmount(),
         wallet: 'Spot Wallet',
@@ -27,11 +28,12 @@ const BinanceDark = () => {
     }));
 
     // Status bar state
-    const [statusBar, setStatusBar] = useState({
-        time: '9:41',
-        battery: '98',
-        signal: '4G'
-    });
+    // Lazy so the random values are drawn once per mount, not per render.
+    const [statusBar, setStatusBar] = useState(() => ({
+        time: randomTime(),
+        battery: randomBattery(),
+        signal: randomSignal(),
+    }));
 
     const handleChange = (e) => {
         setFormData({
