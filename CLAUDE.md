@@ -1,7 +1,8 @@
 # Thor Wallet
 
-Vite + React 19 SPA (React Router 7, Tailwind 4 + daisyUI), deployed to GitHub
-Pages at https://devrabiul.github.io/thor-wallet/.
+Vite + React 19 SPA (React Router 7, Tailwind 4 + daisyUI). Private repo, not
+published anywhere — it was on GitHub Pages at
+https://devrabiul.github.io/thor-wallet/ and no longer is.
 
 ## Rules
 
@@ -29,25 +30,18 @@ ask rather than pushing a workaround.
 | `npm run dev` | Dev server at `/` |
 | `npm run lint` | ESLint — must pass before any push |
 | `npm run build` | Production build into `dist/` |
-| `npm run preview` | Serves the built output at `/thor-wallet/` |
+| `npm run preview` | Serves the built output at `/` |
 
-## Deploy
+## CI
 
-`.github/workflows/deploy.yml` builds and publishes to GitHub Pages on every
-push to `main` or `v1.0`; PRs run lint + build only. Both branches publish to
-the same site, so the last push wins.
+`.github/workflows/ci.yml` runs lint + build on pushes to `main` and `v1.0` and
+on PRs. It does not publish — a green run just means the bundle compiles.
 
-CI gates on lint — a lint error fails the job and nothing deploys.
-
-### Subpath gotchas
-
-Pages serves this from `/thor-wallet/`, not the domain root:
-
-- `vite.config.js` sets `base` for build/preview; dev stays at `/`.
-- The router's `basename` is `import.meta.env.BASE_URL`. Keep in-app links as
-  plain `to="/route"` — never hardcode `/thor-wallet/`.
-- The build emits `404.html` (an `index.html` copy) and `.nojekyll`. Pages has
-  no SPA rewrite, so `404.html` is what keeps deep-link refreshes working.
+There is no GitHub Pages deployment. `base` is `/` everywhere, so the app
+assumes it is served from the domain root; if it ever gets hosted under a
+subpath again, set `base` in `vite.config.js` rather than hardcoding a prefix
+anywhere. The router's `basename` is `import.meta.env.BASE_URL`, so it follows
+`base` automatically — keep in-app links as plain `to="/route"`.
 
 ## Auth
 
