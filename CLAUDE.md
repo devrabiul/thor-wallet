@@ -33,9 +33,14 @@ ask rather than pushing a workaround.
 
 ## Deploy
 
-`.github/workflows/deploy.yml` builds and publishes to GitHub Pages on every
-push to `main` or `v1.0`; PRs run lint + build only. Both branches publish to
-the same site, so the last push wins.
+`.github/workflows/deploy.yml` runs on pushes to `main` and `v1.0`; PRs run
+lint + build only.
+
+**Only `main` can actually publish.** The `github-pages` environment has a
+deployment-branch rule that rejects everything else, so a push to `v1.0` builds
+fine and then fails at the Deploy job with "Branch v1.0 is not allowed to deploy
+to github-pages due to environment protection rules." Shipping from `v1.0` means
+merging it into `main` — that's what PR #1 did.
 
 CI gates on lint — a lint error fails the job and nothing deploys.
 
