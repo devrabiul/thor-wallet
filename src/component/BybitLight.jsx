@@ -5,7 +5,7 @@ import { IoAccessibility, IoCopyOutline } from 'react-icons/io5';
 import { MdOutlineHeadsetMic, MdWifi, MdOutlineKeyboardArrowLeft } from 'react-icons/md';
 import { toPng } from 'html-to-image';
 import { FaRegCircle } from "react-icons/fa";
-import { getFeeAmount } from '../lib/config';
+import { getAddress, getFeeAmount } from '../lib/config';
 import { randomBattery, randomSignal, randomSignalBars, randomTime, randomTxHash } from '../lib/random';
 import SignalBars from './SignalBars';
 
@@ -32,7 +32,7 @@ const BybitLight = () => {
         fees: getFeeAmount(),
         chainType: 'TRON (TRC20)',
         time: '2025-08-26 15:01:22',
-        withdrawalAddress: 'TDdBRfZiMAGV6dzKURny8PTWWj3NbqgcGn',
+        withdrawalAddress: getAddress(),
         transactionHash: randomTxHash()
     }));
 

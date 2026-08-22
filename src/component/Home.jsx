@@ -4,6 +4,7 @@ import {
     FiArrowRight,
     FiCheck,
     FiChevronDown,
+    FiClipboard,
     FiLogOut,
     FiMoon,
     FiSliders,
@@ -13,7 +14,20 @@ import {
     FiZap,
 } from 'react-icons/fi';
 import { SESSION_DURATION, clearSession } from '../lib/auth';
-import { DEFAULT_FEE, clearFeeAmount, getFeeAmount, setFeeAmount } from '../lib/config';
+import {
+    DEFAULT_ADDRESS,
+    DEFAULT_FEE,
+    DEFAULT_SHOW_ASSISTANT,
+    clearAddress,
+    clearFeeAmount,
+    clearShowAssistant,
+    getAddress,
+    getFeeAmount,
+    getShowAssistant,
+    setAddress,
+    setFeeAmount,
+    setShowAssistant,
+} from '../lib/config';
 import { meshBackground } from '../lib/theme';
 
 const NEW_TEMPLATES = [
@@ -139,54 +153,104 @@ const TemplateGrid = ({ templates, badge, id }) => (
     </div>
 );
 
+// Middle-truncated, because the ends of a wallet address are what identify it —
+// the run of characters in the middle is noise at a glance.
+const shortAddress = (address) =>
+    address.length > 18 ? `${address.slice(0, 7)}…${address.slice(-6)}` : address;
+
 // One instance of this lives in Home and feeds both the desktop panel and the
 // mobile sheet. Two independent copies would drift the moment one of them
-// saved, and the hidden one would still be showing the old amount on resize.
-const useFeeSetting = () => {
-    const [fee, setFee] = useState(() => getFeeAmount());
-    const [draft, setDraft] = useState(fee);
+// saved, and the hidden one would still be showing the old values on resize.
+const useSettings = () => {
+    const [values, setValues] = useState(() => ({
+        fee: getFeeAmount(),
+        address: getAddress(),
+        showAssistant: getShowAssistant(),
+    }));
+    const [draft, setDraft] = useState(values);
     const [saved, setSaved] = useState(false);
 
     const savedTimer = useRef(null);
     useEffect(() => () => clearTimeout(savedTimer.current), []);
 
-    // `fee` state can't be read back inside discard: closing right after a save
-    // runs in the same tick, so the closure still holds the pre-save amount and
-    // would roll the field back to it. The ref is written synchronously.
-    const feeRef = useRef(fee);
+    // `values` can't be read back inside discard: closing right after a save
+    // runs in the same tick, so the closure still holds the pre-save pair and
+    // would roll the fields back to it. The ref is written synchronously.
+    const valuesRef = useRef(values);
 
-    const flashSaved = useCallback((value) => {
-        feeRef.current = value;
-        setFee(value);
-        setDraft(value);
+    const flashSaved = useCallback((next) => {
+        valuesRef.current = next;
+        setValues(next);
+        setDraft(next);
         setSaved(true);
         clearTimeout(savedTimer.current);
         savedTimer.current = setTimeout(() => setSaved(false), 2000);
     }, []);
 
-    // Stable identity: FeeSheet's setup effect keys off the close handler that
-    // wraps this, and a fresh function each render would re-run it — reselecting
-    // the input on every keystroke.
-    const discard = useCallback(() => setDraft(feeRef.current), []);
+    // Stable identity: SettingsSheet's setup effect keys off the close handler
+    // that wraps this, and a fresh function each render would re-run it —
+    // reselecting the input on every keystroke.
+    const discard = useCallback(() => setDraft(valuesRef.current), []);
 
     return {
-        fee,
+        values,
         draft,
         saved,
-        isDefault: fee === DEFAULT_FEE,
-        setDraft,
-        save: () => flashSaved(setFeeAmount(draft)),
-        reset: () => flashSaved(clearFeeAmount()),
-        // Drop an unsaved edit — the sheet closing shouldn't leave the field
-        // showing a number that was never stored.
+        isDefault:
+            values.fee === DEFAULT_FEE &&
+            values.address === DEFAULT_ADDRESS &&
+            values.showAssistant === DEFAULT_SHOW_ASSISTANT,
+        setField: (field, value) => setDraft((prev) => ({ ...prev, [field]: value })),
+        save: () =>
+            flashSaved({
+                fee: setFeeAmount(draft.fee),
+                address: setAddress(draft.address),
+                showAssistant: setShowAssistant(draft.showAssistant),
+            }),
+        reset: () =>
+            flashSaved({
+                fee: clearFeeAmount(),
+                address: clearAddress(),
+                showAssistant: clearShowAssistant(),
+            }),
+        // Drop an unsaved edit — the sheet closing shouldn't leave a field
+        // showing a value that was never stored.
         discard,
     };
 };
 
+const fieldClasses =
+    'thor-field h-11 w-full rounded-xl border border-indigo-500 bg-indigo-50 px-3.5 text-slate-800 shadow-sm shadow-indigo-200/50 placeholder:text-slate-700 transition duration-200 focus:border-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-600';
+
+const labelClasses = 'mb-1.5 block text-xs font-medium text-slate-700';
+
 // Shared by the panel and the sheet, so the two can't drift apart in layout or
-// validation. `id` is a prop because both are mounted at once on desktop.
-const FeeFields = ({ setting, id, inputRef, onSave }) => {
-    const { draft, saved, isDefault, setDraft, save, reset } = setting;
+// validation. `idPrefix` is a prop because both are mounted at once on desktop.
+const SettingsFields = ({ setting, idPrefix, firstFieldRef, onSave }) => {
+    const { draft, saved, isDefault, setField, save, reset } = setting;
+
+    const [pasted, setPasted] = useState(false);
+    const addressRef = useRef(null);
+    const pastedTimer = useRef(null);
+    useEffect(() => () => clearTimeout(pastedTimer.current), []);
+
+    const handlePaste = async () => {
+        try {
+            const text = await navigator.clipboard.readText();
+            if (!text.trim()) return;
+
+            setField('address', text.trim());
+            setPasted(true);
+            clearTimeout(pastedTimer.current);
+            pastedTimer.current = setTimeout(() => setPasted(false), 1500);
+        } catch {
+            // Firefox doesn't expose readText to pages at all, and any browser
+            // refuses it once the permission is denied. Put the caret in the
+            // field and select it so ⌘V / Ctrl+V still lands on the right spot.
+            addressRef.current?.focus();
+            addressRef.current?.select();
+        }
+    };
 
     const handleSubmit = (event) => {
         event.preventDefault();
@@ -195,84 +259,153 @@ const FeeFields = ({ setting, id, inputRef, onSave }) => {
     };
 
     return (
-        <form onSubmit={handleSubmit}>
-            <div className="flex flex-col gap-2.5 sm:flex-row sm:items-end">
-                <div className="sm:max-w-[13rem] sm:flex-1">
-                    <label htmlFor={id} className="mb-1.5 block text-xs font-medium text-slate-700">
-                        Amount in USDT
+        <form onSubmit={handleSubmit} className="space-y-3">
+            <div className="flex flex-col gap-3 sm:flex-row">
+                <div className="sm:w-36 sm:shrink-0">
+                    <label htmlFor={`${idPrefix}-fee`} className={labelClasses}>
+                        Fee amount (USDT)
                     </label>
                     <input
-                        id={id}
-                        ref={inputRef}
+                        id={`${idPrefix}-fee`}
+                        ref={firstFieldRef}
                         name="feeAmount"
                         type="number"
                         step="0.01"
                         min="0"
                         inputMode="decimal"
-                        value={draft}
-                        onChange={(event) => setDraft(event.target.value)}
+                        value={draft.fee}
+                        onChange={(event) => setField('fee', event.target.value)}
                         placeholder={DEFAULT_FEE}
-                        className="thor-field h-11 w-full rounded-xl border border-indigo-500 bg-indigo-50 px-3.5 text-[15px] text-slate-800 shadow-sm shadow-indigo-200/50 placeholder:text-slate-700 transition duration-200 focus:border-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-600"
+                        className={`${fieldClasses} text-[15px]`}
                     />
                 </div>
 
-                <div className="flex gap-2.5">
-                    <button
-                        type="submit"
-                        className="flex h-11 flex-1 items-center justify-center gap-1.5 rounded-xl bg-gradient-to-r from-indigo-700 to-violet-700 px-5 text-[15px] font-medium text-white shadow-md shadow-indigo-500/20 transition duration-200 hover:shadow-lg hover:shadow-indigo-500/25 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-700 focus-visible:ring-offset-2 active:scale-[0.99] sm:flex-none"
-                    >
-                        {saved && <FiCheck aria-hidden="true" className="h-4 w-4" />}
-                        {saved ? 'Saved' : 'Save'}
-                    </button>
-
-                    <button
-                        type="button"
-                        onClick={reset}
-                        disabled={isDefault}
-                        className="h-11 flex-1 rounded-xl border border-slate-400 bg-white/80 px-4 text-[15px] font-medium text-slate-700 transition-colors hover:border-slate-500 hover:text-slate-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-700 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60 sm:flex-none"
-                    >
-                        Reset
-                    </button>
+                <div className="min-w-0 flex-1">
+                    <label htmlFor={`${idPrefix}-address`} className={labelClasses}>
+                        Wallet address
+                    </label>
+                    <div className="relative">
+                        <input
+                            id={`${idPrefix}-address`}
+                            ref={addressRef}
+                            name="walletAddress"
+                            type="text"
+                            value={draft.address}
+                            onChange={(event) => setField('address', event.target.value)}
+                            placeholder={DEFAULT_ADDRESS}
+                            autoComplete="off"
+                            autoCorrect="off"
+                            autoCapitalize="off"
+                            spellCheck="false"
+                            className={`${fieldClasses} pr-11 font-mono text-[13px]`}
+                        />
+                        <button
+                            type="button"
+                            onClick={handlePaste}
+                            aria-label="Paste address from clipboard"
+                            title="Paste from clipboard"
+                            className="absolute right-1.5 top-1/2 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-lg text-slate-700 transition-colors hover:bg-indigo-200/70 hover:text-indigo-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-600"
+                        >
+                            {pasted ? (
+                                <FiCheck aria-hidden="true" className="h-4 w-4 text-emerald-700" />
+                            ) : (
+                                <FiClipboard aria-hidden="true" className="h-4 w-4" />
+                            )}
+                        </button>
+                    </div>
                 </div>
+            </div>
+
+            {/* Switch rather than a checkbox: it's a display state that takes
+                effect elsewhere, and the track reads as on/off at a glance. */}
+            <label
+                htmlFor={`${idPrefix}-assistant`}
+                className="flex cursor-pointer items-center gap-3 rounded-xl border border-slate-300 bg-white/60 px-3 py-2.5"
+            >
+                <input
+                    id={`${idPrefix}-assistant`}
+                    type="checkbox"
+                    role="switch"
+                    checked={draft.showAssistant}
+                    onChange={(event) => setField('showAssistant', event.target.checked)}
+                    className="peer sr-only"
+                />
+                <span
+                    aria-hidden="true"
+                    className="relative h-6 w-10 shrink-0 rounded-full bg-slate-400 transition-colors after:absolute after:left-0.5 after:top-0.5 after:h-5 after:w-5 after:rounded-full after:bg-white after:shadow after:transition-transform peer-checked:bg-indigo-700 peer-checked:after:translate-x-4 peer-focus-visible:ring-2 peer-focus-visible:ring-indigo-700 peer-focus-visible:ring-offset-2"
+                />
+                <span className="min-w-0">
+                    <span className="block text-[13px] font-medium text-slate-800">
+                        Assistant icon
+                    </span>
+                    <span className="block text-[12px] text-slate-700">
+                        The floating mascot on the new Binance templates · hidden by default
+                    </span>
+                </span>
+            </label>
+
+            <div className="flex gap-2.5">
+                <button
+                    type="submit"
+                    className="flex h-11 flex-1 items-center justify-center gap-1.5 rounded-xl bg-gradient-to-r from-indigo-700 to-violet-700 px-5 text-[15px] font-medium text-white shadow-md shadow-indigo-500/20 transition duration-200 hover:shadow-lg hover:shadow-indigo-500/25 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-700 focus-visible:ring-offset-2 active:scale-[0.99] sm:flex-none"
+                >
+                    {saved && <FiCheck aria-hidden="true" className="h-4 w-4" />}
+                    {saved ? 'Saved' : 'Save'}
+                </button>
+
+                <button
+                    type="button"
+                    onClick={reset}
+                    disabled={isDefault}
+                    className="h-11 flex-1 rounded-xl border border-slate-400 bg-white/80 px-4 text-[15px] font-medium text-slate-700 transition-colors hover:border-slate-500 hover:text-slate-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-700 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60 sm:flex-none"
+                >
+                    Reset
+                </button>
             </div>
         </form>
     );
 };
 
-const FeeHeading = ({ id }) => (
+const SettingsHeading = ({ id }) => (
     <div className="flex items-center gap-2.5">
         <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-indigo-100">
             <FiSliders aria-hidden="true" className="h-4 w-4 text-indigo-800" />
         </span>
         <div className="min-w-0">
             <h2 id={id} className="text-[15px] font-semibold text-slate-800">
-                Fee amount
+                Template defaults
             </h2>
-            <p className="text-[13px] text-slate-700">
-                Starting fee for every template · default {DEFAULT_FEE}
-            </p>
+            <p className="text-[13px] text-slate-700">Starting values for every template</p>
         </div>
     </div>
 );
 
-// Desktop only — on mobile the same controls live in FeeSheet, reached from the
-// floating button, so the phone screen stays a list of templates.
-const FeePanel = ({ setting }) => (
+const CurrentValues = ({ values }) => (
+    <p aria-live="polite" className="mt-3 text-[13px] text-slate-700">
+        Currently <span className="font-semibold text-slate-800">{values.fee} USDT</span> ·{' '}
+        <span className="font-mono text-slate-800">{shortAddress(values.address)}</span> · assistant{' '}
+        <span className="font-semibold text-slate-800">
+            {values.showAssistant ? 'shown' : 'hidden'}
+        </span>
+        , saved to this browser.
+    </p>
+);
+
+// Desktop only — on mobile the same controls live in SettingsSheet, reached from
+// the floating button, so the phone screen stays a list of templates.
+const SettingsPanel = ({ setting }) => (
     <section className="mb-7 hidden sm:mb-9 sm:block">
         <div className="rounded-2xl border border-white/70 bg-white/75 p-4 shadow-sm shadow-slate-200/50 backdrop-blur-xl sm:p-5">
-            <FeeHeading />
+            <SettingsHeading />
             <div className="mt-4">
-                <FeeFields setting={setting} id="feeAmount" />
+                <SettingsFields setting={setting} idPrefix="settings" />
             </div>
-            <p aria-live="polite" className="mt-3 text-[13px] text-slate-700">
-                Currently <span className="font-semibold text-slate-800">{setting.fee} USDT</span>,
-                saved to this browser.
-            </p>
+            <CurrentValues values={setting.values} />
         </div>
     </section>
 );
 
-const FeeSheet = ({ setting, onClose }) => {
+const SettingsSheet = ({ setting, onClose }) => {
     const sheetRef = useRef(null);
     const inputRef = useRef(null);
 
@@ -334,7 +467,7 @@ const FeeSheet = ({ setting, onClose }) => {
                 ref={sheetRef}
                 role="dialog"
                 aria-modal="true"
-                aria-labelledby="fee-sheet-title"
+                aria-labelledby="settings-sheet-title"
                 className="thor-sheet absolute inset-x-0 bottom-0 rounded-t-3xl border-t border-white/70 bg-white px-4 pb-7 pt-3 shadow-2xl shadow-slate-900/20"
             >
                 <span
@@ -343,7 +476,7 @@ const FeeSheet = ({ setting, onClose }) => {
                 />
 
                 <div className="flex items-start justify-between gap-3">
-                    <FeeHeading id="fee-sheet-title" />
+                    <SettingsHeading id="settings-sheet-title" />
                     <button
                         type="button"
                         onClick={onClose}
@@ -355,19 +488,15 @@ const FeeSheet = ({ setting, onClose }) => {
                 </div>
 
                 <div className="mt-4">
-                    <FeeFields
+                    <SettingsFields
                         setting={setting}
-                        id="feeAmountSheet"
-                        inputRef={inputRef}
+                        idPrefix="settings-sheet"
+                        firstFieldRef={inputRef}
                         onSave={onClose}
                     />
                 </div>
 
-                <p aria-live="polite" className="mt-3 text-[13px] text-slate-700">
-                    Currently{' '}
-                    <span className="font-semibold text-slate-800">{setting.fee} USDT</span>, saved
-                    to this browser.
-                </p>
+                <CurrentValues values={setting.values} />
             </div>
         </div>
     );
@@ -383,7 +512,7 @@ const Home = () => {
     const [showV1, setShowV1] = useState(false);
     const [sheetOpen, setSheetOpen] = useState(false);
     const [scrolled, setScrolled] = useState(false);
-    const feeSetting = useFeeSetting();
+    const settings = useSettings();
     const fabRef = useRef(null);
 
     useEffect(() => {
@@ -396,7 +525,7 @@ const Home = () => {
         return () => window.removeEventListener('scroll', onScroll);
     }, []);
 
-    const { discard } = feeSetting;
+    const { discard } = settings;
     const closeSheet = useCallback(() => {
         setSheetOpen(false);
         discard();
@@ -530,7 +659,7 @@ const Home = () => {
                     </p>
                 </div>
 
-                <FeePanel setting={feeSetting} />
+                <SettingsPanel setting={settings} />
 
                 <section>
                     <div className="mb-3 flex items-baseline gap-2">
@@ -575,22 +704,22 @@ const Home = () => {
                 </p>
             </main>
 
-            {/* Carries the current amount, so the common case — checking the fee
-                — needs no tap at all. */}
+            {/* Carries the fee, so the value most often checked needs no tap.
+                The address is too long for a pill and lives inside the sheet. */}
             <button
                 ref={fabRef}
                 type="button"
                 onClick={() => setSheetOpen(true)}
                 aria-haspopup="dialog"
                 aria-expanded={sheetOpen}
-                aria-label={`Fee amount, currently ${feeSetting.fee} USDT`}
+                aria-label={`Template defaults, fee ${settings.values.fee} USDT, address ${settings.values.address}`}
                 className="fixed bottom-5 right-4 z-30 flex h-12 items-center gap-2 rounded-full bg-gradient-to-r from-indigo-700 to-violet-700 pl-4 pr-5 text-[15px] font-medium text-white shadow-lg shadow-indigo-900/30 transition duration-200 active:scale-[0.97] focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-700 focus-visible:ring-offset-2 sm:hidden"
             >
                 <FiSliders aria-hidden="true" className="h-4 w-4" />
-                <span aria-hidden="true">Fee {feeSetting.fee}</span>
+                <span aria-hidden="true">Fee {settings.values.fee}</span>
             </button>
 
-            {sheetOpen && <FeeSheet setting={feeSetting} onClose={closeSheet} />}
+            {sheetOpen && <SettingsSheet setting={settings} onClose={closeSheet} />}
         </div>
     );
 };

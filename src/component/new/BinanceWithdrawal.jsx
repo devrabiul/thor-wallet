@@ -7,7 +7,7 @@ import { TbReport } from 'react-icons/tb';
 import { toPng } from 'html-to-image';
 import PhoneStatusBar from './PhoneStatusBar';
 import TemplateToolbar from './TemplateToolbar';
-import { getFeeAmount } from '../../lib/config';
+import { getAddress, getFeeAmount, getShowAssistant } from '../../lib/config';
 import { totalWithFee } from '../../lib/amount';
 import { randomBattery, randomSignal, randomSignalBars, randomTime, randomTxHash } from '../../lib/random';
 
@@ -106,6 +106,10 @@ const BinanceWithdrawal = ({ dark = false }) => {
     const [isEditing, setIsEditing] = useState(false);
     const [isDownloading, setIsDownloading] = useState(false);
 
+    // Read once per mount, like the other settings — changing it on the
+    // homepage applies the next time a template is opened.
+    const [showAssistant] = useState(getShowAssistant);
+
     // Lazy so the random values are drawn once per mount, not per render.
     const [statusBar, setStatusBar] = useState(() => ({
         time: randomTime(),
@@ -124,7 +128,7 @@ const BinanceWithdrawal = ({ dark = false }) => {
             status: 'Completed',
             note: NOTES.Completed,
             network: 'TRX',
-            address: 'TK2NgwbxmY2uksJgwcVTGQ6knbT1hk2SJn',
+            address: getAddress(),
             txid: randomTxHash(),
             // Derived, not hardcoded — the fee is configurable, so a fixed
             // total would contradict it as soon as it isn't 1.5.
@@ -434,9 +438,12 @@ const BinanceWithdrawal = ({ dark = false }) => {
 
                     <div className="flex-1" />
 
-                    {/* Mascot sits just above the CTA, hugging the right edge */}
+                    {/* Mascot sits just above the CTA, hugging the right edge.
+                        Off unless switched on in the homepage settings — the
+                        spacer below keeps the CTA in place either way, so
+                        hiding it doesn't reflow the bottom of the receipt. */}
                     <div className="flex justify-end pr-3 pb-6">
-                        <AiMascot />
+                        {showAssistant ? <AiMascot /> : <div className="h-12" />}
                     </div>
 
                     <div className="px-4 pb-9">

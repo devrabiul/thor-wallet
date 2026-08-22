@@ -5,7 +5,7 @@ import { IoCopyOutline } from 'react-icons/io5';
 import { toPng } from 'html-to-image';
 import PhoneStatusBar from './PhoneStatusBar';
 import TemplateToolbar from './TemplateToolbar';
-import { getFeeAmount } from '../../lib/config';
+import { getAddress, getFeeAmount } from '../../lib/config';
 import { randomBattery, randomSignal, randomSignalBars, randomTime, randomTxHash } from '../../lib/random';
 
 const THEME = {
@@ -78,7 +78,7 @@ const BybitWithdrawal = ({ dark = false }) => {
         fees: getFeeAmount(),
         chainType: 'TRON (TRC20)',
         time: '2026-08-19 22:32:57',
-        withdrawalAddress: 'THPZzVKcteuzLBheh1Q4jAmTiNwcxc5ymA',
+        withdrawalAddress: getAddress(),
         transactionHash: randomTxHash(),
     }));
 

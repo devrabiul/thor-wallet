@@ -6,7 +6,7 @@ import img from '../assets/binanceai.png';
 import { MdOutlineHeadsetMic, MdWifi } from 'react-icons/md';
 import { TbReport } from 'react-icons/tb';
 import { toPng } from 'html-to-image';
-import { getFeeAmount } from '../lib/config';
+import { getAddress, getFeeAmount } from '../lib/config';
 import { totalWithFee } from '../lib/amount';
 import { randomBattery, randomSignal, randomSignalBars, randomTime, randomTxHash } from '../lib/random';
 import SignalBars from './SignalBars';
@@ -25,7 +25,7 @@ const BinanceDark = () => {
             status: 'Completed',
             cryptoTransferred: 'Crypto transferred out of Binance. Please contact the recipient platform for your transaction receipt.',
             network: 'TRX',
-            address: 'TQeyx87kMFDiG99jiLcRgCrv6JYEnMv553',
+            address: getAddress(),
             txid: randomTxHash(),
             // Derived, not hardcoded — the fee is configurable, so a fixed
             // total would contradict it as soon as it isn't 1.5.
