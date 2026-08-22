@@ -14,6 +14,8 @@ import BinanceDark from './component/BinanceDark.jsx';
 import Bybit from './component/Bybit.jsx';
 import BybitLight from './component/BybitLight.jsx';
 import Login from './component/Login.jsx';
+import BinanceWithdrawal from './component/new/BinanceWithdrawal.jsx';
+import BybitWithdrawal from './component/new/BybitWithdrawal.jsx';
 import PrivateRoute from './Route/PrivateRoute.jsx';
 
 const router = createBrowserRouter([
@@ -65,6 +67,40 @@ const router = createBrowserRouter([
         element: (
           <PrivateRoute>
             <BybitLight />
+          </PrivateRoute>
+        )
+      },
+      // New Templates — same generators, redrawn to match the latest
+      // screenshots. Namespaced under /new so the V1 routes stay untouched.
+      {
+        path: "new/binance-light",
+        element: (
+          <PrivateRoute>
+            <BinanceWithdrawal />
+          </PrivateRoute>
+        )
+      },
+      {
+        path: "new/binance-dark",
+        element: (
+          <PrivateRoute>
+            <BinanceWithdrawal dark />
+          </PrivateRoute>
+        )
+      },
+      {
+        path: "new/bybit-dark",
+        element: (
+          <PrivateRoute>
+            <BybitWithdrawal dark />
+          </PrivateRoute>
+        )
+      },
+      {
+        path: "new/bybit-light",
+        element: (
+          <PrivateRoute>
+            <BybitWithdrawal />
           </PrivateRoute>
         )
       },

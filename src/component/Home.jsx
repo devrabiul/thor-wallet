@@ -11,6 +11,13 @@ const TEMPLATES = [
     { to: '/bybit-light', exchange: 'Bybit', theme: 'Light', accent: '#F7A600', dark: false },
 ];
 
+const NEW_TEMPLATES = [
+    { to: '/new/binance-light', exchange: 'Binance', theme: 'Light', accent: '#F0B90B', dark: false },
+    { to: '/new/binance-dark', exchange: 'Binance', theme: 'Dark', accent: '#F0B90B', dark: true },
+    { to: '/new/bybit-dark', exchange: 'Bybit', theme: 'Dark', accent: '#F7A600', dark: true },
+    { to: '/new/bybit-light', exchange: 'Bybit', theme: 'Light', accent: '#F7A600', dark: false },
+];
+
 const cardBase =
     'flex items-center gap-3.5 rounded-2xl border p-3.5 backdrop-blur-xl transition duration-200';
 
@@ -145,27 +152,25 @@ const Home = () => {
                     </TemplateGrid>
                 </section>
 
-                {/* Placeholders — these have no routes yet, so they aren't links */}
+                {/* Redrawn against the latest app screenshots */}
                 <section>
-                    <SectionHeading title="New Templates" note="not wired up yet" />
+                    <SectionHeading title="New Templates" note="updated design" />
                     <TemplateGrid>
-                        {TEMPLATES.map(({ to, exchange, theme, accent, dark }) => (
-                            <div
-                                key={`new-${to}`}
-                                aria-disabled="true"
-                                className={`${cardBase} cursor-default border-white/50 border-dashed bg-white/40`}
+                        {NEW_TEMPLATES.map(({ to, exchange, theme, accent, dark }) => (
+                            <Link
+                                key={to}
+                                to={to}
+                                className={`${cardBase} group border-white/70 bg-white/70 shadow-sm shadow-slate-200/50 hover:-translate-y-0.5 hover:border-white hover:bg-white/90 hover:shadow-lg hover:shadow-slate-300/40 focus:outline-none focus-visible:ring-4 focus-visible:ring-indigo-100`}
                             >
-                                <Swatch accent={accent} dark={dark} muted />
+                                <Swatch accent={accent} dark={dark} />
                                 <div className="min-w-0 flex-1">
-                                    <p className="text-[15px] font-medium text-slate-500">
+                                    <p className="text-[15px] font-medium text-slate-800">
                                         {exchange}
                                     </p>
                                     <p className="text-xs text-slate-400">{theme} theme</p>
                                 </div>
-                                <span className="shrink-0 rounded-full border border-slate-200 bg-white/70 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-slate-400">
-                                    Soon
-                                </span>
-                            </div>
+                                <FiArrowRight className="h-4 w-4 shrink-0 text-slate-300 transition-all duration-200 group-hover:translate-x-0.5 group-hover:text-slate-500" />
+                            </Link>
                         ))}
                     </TemplateGrid>
                 </section>
