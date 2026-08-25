@@ -79,10 +79,10 @@ const AiMascot = () => (
 // remount the subtree and the edit-mode inputs would lose focus per keystroke.
 const Row = ({ theme, label, children }) => (
     <div className="flex items-start justify-between gap-4 py-[10px]">
-        <span className="text-[11.5px] leading-[1.5]" style={{ color: theme.label }}>
+        <span className="text-[12px] leading-[1.5]" style={{ color: theme.label }}>
             {label}
         </span>
-        <div className="text-right text-[11.5px] leading-[1.5]" style={{ color: theme.text }}>
+        <div className="text-right text-[12px] leading-[1.5]" style={{ color: theme.text }}>
             {children}
         </div>
     </div>
@@ -233,7 +233,7 @@ const BinanceWithdrawal = ({ dark = false }) => {
                     {/* Header */}
                     <div className="mt-[19px] flex items-center justify-between px-4">
                         <FaArrowLeftLong className="text-[17px]" />
-                        <h2 className="text-[14.5px] font-semibold">Withdrawal Details</h2>
+                        <h2 className="text-[15px] font-semibold">Withdrawal Details</h2>
                         <MdOutlineHeadsetMic className="text-[18px]" />
                     </div>
 
@@ -297,7 +297,7 @@ const BinanceWithdrawal = ({ dark = false }) => {
                                 {formData.note}
                             </p>
                         )}
-                        <p className="mt-1 text-center text-[10.5px] font-semibold" style={{ color: YELLOW }}>
+                        <p className="mt-1 text-center text-[10px] font-semibold" style={{ color: YELLOW }}>
                             Why hasn&apos;t my withdrawal arrived?
                         </p>
                     </div>
@@ -423,7 +423,7 @@ const BinanceWithdrawal = ({ dark = false }) => {
                     {/* Scam Report */}
                     <div className="mt-4 flex justify-center">
                         <span
-                            className="flex items-center gap-1 text-[11.5px]"
+                            className="flex items-center gap-1 text-[12px]"
                             style={{ color: c.label }}
                         >
                             <TbReport className="text-[14px]" />

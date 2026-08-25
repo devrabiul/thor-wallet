@@ -35,10 +35,10 @@ const STATUS_STYLE = {
 // renders — otherwise React remounts them and edit-mode inputs lose focus.
 const Row = ({ theme, label, children }) => (
     <div className="flex items-start justify-between gap-4 py-[8px]">
-        <span className="text-[11.5px] leading-[1.5]" style={{ color: theme.label }}>
+        <span className="text-[12px] leading-[1.5]" style={{ color: theme.label }}>
             {label}
         </span>
-        <div className="text-right text-[11.5px] leading-[1.5]" style={{ color: theme.text }}>
+        <div className="text-right text-[12px] leading-[1.5]" style={{ color: theme.text }}>
             {children}
         </div>
     </div>
@@ -159,12 +159,12 @@ const BybitWithdrawal = ({ dark = false }) => {
                         icons, since Bybit has no trailing action here. */}
                     <div className="relative mt-[30px] flex items-center justify-center px-4">
                         <FaArrowLeftLong className="absolute left-4 text-[17px]" />
-                        <h2 className="text-[14.5px] font-semibold">Withdrawal Details</h2>
+                        <h2 className="text-[15px] font-semibold">Withdrawal Details</h2>
                     </div>
 
                     {/* Quantity */}
                     <div className="mt-11 text-center">
-                        <p className="text-[11.5px]" style={{ color: c.label }}>
+                        <p className="text-[12px]" style={{ color: c.label }}>
                             Quantity
                         </p>
                         <div className="mt-1.5 flex items-center justify-center gap-1.5">

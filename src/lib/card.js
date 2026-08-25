@@ -13,6 +13,15 @@ export const CARD_WIDTH = 400;
 // 400 x 866 is close to 9:19.5, the aspect ratio of a current phone screen.
 export const CARD_HEIGHT = 866;
 
+// Keep font sizes inside a card whole-pixel — `text-[12px]`, not
+// `text-[11.5px]`.
+//
+// html-to-image rewrites every font-size it copies to `floor(size) - 0.1`
+// (clone-node.js), so a fractional size is unreachable in the export: 11.5px
+// and 11px both land on 10.9px. The templates used to carry 10.5/11.5/14.5px
+// sizes that the PNG quietly rounded down, which is why the downloaded text
+// never quite matched the screen. Whole pixels land within 0.1px instead.
+
 // Render a card element to a PNG data URL.
 //
 // The card is laid out responsively — `w-full max-w-[400px]` inside a padded
