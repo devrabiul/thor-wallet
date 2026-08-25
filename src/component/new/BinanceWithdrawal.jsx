@@ -4,11 +4,10 @@ import { FaArrowLeftLong } from 'react-icons/fa6';
 import { IoCopyOutline } from 'react-icons/io5';
 import { MdOutlineHeadsetMic } from 'react-icons/md';
 import { TbReport } from 'react-icons/tb';
-import { toPng } from 'html-to-image';
 import PhoneStatusBar from './PhoneStatusBar';
 import TemplateToolbar from './TemplateToolbar';
 import { getAddress, getFeeAmount, getShowAssistant } from '../../lib/config';
-import { CARD_HEIGHT, cardCaptureOptions } from '../../lib/card';
+import { CARD_HEIGHT, captureCardPng } from '../../lib/card';
 import { totalWithFee } from '../../lib/amount';
 import { randomBattery, randomSignal, randomSignalBars, randomTime, randomTxHash } from '../../lib/random';
 
@@ -179,7 +178,7 @@ const BinanceWithdrawal = ({ dark = false }) => {
         setIsDownloading(true);
 
         try {
-            const dataUrl = await toPng(element, cardCaptureOptions(element, c.bg));
+            const dataUrl = await captureCardPng(element, c.bg);
 
             const link = document.createElement('a');
             const timestamp = new Date().toISOString().replace(/[:.]/g, '-');

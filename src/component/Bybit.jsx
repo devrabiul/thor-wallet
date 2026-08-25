@@ -3,10 +3,9 @@ import { CiCircleCheck } from 'react-icons/ci';
 import { FaArrowLeftLong, FaBars } from 'react-icons/fa6';
 import { IoAccessibility, IoCopyOutline } from 'react-icons/io5';
 import { MdWifi, MdOutlineKeyboardArrowLeft } from 'react-icons/md';
-import { toPng } from 'html-to-image';
 import { FaRegCircle } from "react-icons/fa";
 import { getAddress, getFeeAmount } from '../lib/config';
-import { CARD_HEIGHT, cardCaptureOptions } from '../lib/card';
+import { CARD_HEIGHT, captureCardPng } from '../lib/card';
 import { randomBattery, randomSignal, randomSignalBars, randomTime, randomTxHash } from '../lib/random';
 import SignalBars from './SignalBars';
 
@@ -63,7 +62,7 @@ const Bybit = () => {
         setIsDownloading(true);
 
         try {
-            const dataUrl = await toPng(element, cardCaptureOptions(element));
+            const dataUrl = await captureCardPng(element);
 
             const link = document.createElement('a');
             const timestamp = new Date().toISOString().replace(/[:.]/g, '-');

@@ -1,6 +1,32 @@
 @import "tailwindcss";
 @plugin "daisyui";
 
+/* Inter, self-hosted.
+ *
+ * Every template asks for `'Inter', system-ui, -apple-system, sans-serif`, but
+ * nothing ever loaded Inter — so the name only resolved on machines that
+ * happened to have it installed, and everywhere else the card fell back to
+ * system-ui: SF Pro on Apple, Roboto on Android, Segoe UI on Windows. Since
+ * html-to-image renders through the browser's own font resolution, the
+ * downloaded PNG inherited whichever font the device picked, with different
+ * letterforms and different line wrapping each time.
+ *
+ * Declaring @font-face for the name also beats a locally-installed Inter, so
+ * even a designer's machine with its own copy now renders the bundled one.
+ *
+ * Latin subset only, and the variable (wght) file rather than one file per
+ * weight: the templates span 100-700 (font-thin through font-bold), and
+ * html-to-image inlines every @font-face it finds as base64 into each capture,
+ * so each extra file would be paid for again in every PNG.
+ */
+@font-face {
+    font-family: 'Inter';
+    font-style: normal;
+    font-weight: 100 900;
+    font-display: swap;
+    src: url('@fontsource-variable/inter/files/inter-latin-wght-normal.woff2') format('woff2-variations');
+}
+
 /* Browser autofill on the Login fields.
  *
  * Picking a saved username makes Chrome paint the field with its own

@@ -2,11 +2,10 @@ import { useState } from 'react';
 import { FiCheckCircle, FiClock, FiXCircle } from 'react-icons/fi';
 import { FaArrowLeftLong } from 'react-icons/fa6';
 import { IoCopyOutline } from 'react-icons/io5';
-import { toPng } from 'html-to-image';
 import PhoneStatusBar from './PhoneStatusBar';
 import TemplateToolbar from './TemplateToolbar';
 import { getAddress, getFeeAmount } from '../../lib/config';
-import { CARD_HEIGHT, cardCaptureOptions } from '../../lib/card';
+import { CARD_HEIGHT, captureCardPng } from '../../lib/card';
 import { randomBattery, randomSignal, randomSignalBars, randomTime, randomTxHash } from '../../lib/random';
 
 const THEME = {
@@ -103,7 +102,7 @@ const BybitWithdrawal = ({ dark = false }) => {
         setIsDownloading(true);
 
         try {
-            const dataUrl = await toPng(element, cardCaptureOptions(element, c.bg));
+            const dataUrl = await captureCardPng(element, c.bg);
 
             const link = document.createElement('a');
             const timestamp = new Date().toISOString().replace(/[:.]/g, '-');

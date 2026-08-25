@@ -5,9 +5,8 @@ import img from '../assets/binanceai.png'
 import { IoCopyOutline } from 'react-icons/io5';
 import { MdOutlineHeadsetMic, MdWifi } from 'react-icons/md';
 import { TbReport } from 'react-icons/tb';
-import { toPng } from 'html-to-image';
 import { getAddress, getFeeAmount } from '../lib/config';
-import { CARD_HEIGHT, cardCaptureOptions } from '../lib/card';
+import { CARD_HEIGHT, captureCardPng } from '../lib/card';
 import { totalWithFee } from '../lib/amount';
 import { randomBattery, randomSignal, randomSignalBars, randomTime, randomTxHash } from '../lib/random';
 import SignalBars from './SignalBars';
@@ -84,7 +83,7 @@ const BinanceLight = () => {
         setIsDownloading(true);
 
         try {
-            const dataUrl = await toPng(element, cardCaptureOptions(element, '#FFFFFF'));
+            const dataUrl = await captureCardPng(element, '#FFFFFF');
 
             const link = document.createElement('a');
             const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
@@ -181,9 +180,11 @@ const BinanceLight = () => {
                 </div>
 
                 {/* Binance Light Card - Full height */}
+                {/* `@container` so the `@sm:` inside keys off the card's own
+                    width — see the longer note in BinanceDark. */}
                 <div
                     id="withdrawal-card"
-                    className="bg-white text-black border border-gray-200 flex flex-col relative"
+                    className="@container bg-white text-black border border-gray-200 flex flex-col relative"
                     style={{
                         fontFamily: "'Inter', system-ui, -apple-system, sans-serif",
                         minHeight: `${CARD_HEIGHT}px`,
@@ -305,7 +306,7 @@ const BinanceLight = () => {
                                     className="bg-[#f0f0f0] text-[#6b717a] text-sm w-full px-3 py-2 rounded border border-[#ddd] focus:outline-none focus:border-[#F0B90B]"
                                 />
                             ) : (
-                                <p className="text-[#6b717a] text-center text-[11px] sm:text-xs">
+                                <p className="text-[#6b717a] text-center text-[11px] @sm:text-xs">
                                     {formData.cryptoTransferred}
                                 </p>
                             )}
