@@ -1,8 +1,9 @@
 # Thor Wallet
 
-Vite + React 19 SPA (React Router 7, Tailwind 4 + daisyUI). Private repo, not
-published anywhere — it was on GitHub Pages at
-https://devrabiul.github.io/thor-wallet/ and no longer is.
+Vite + React 19 SPA (React Router 7, Tailwind 4 + daisyUI). Private repo. Runs
+at http://thor-wallet.nextcodes.top — a VPS with nginx, behind Cloudflare. It
+was previously on GitHub Pages at https://devrabiul.github.io/thor-wallet/ and
+no longer is.
 
 ## Rules
 
@@ -42,6 +43,17 @@ assumes it is served from the domain root; if it ever gets hosted under a
 subpath again, set `base` in `vite.config.js` rather than hardcoding a prefix
 anywhere. The router's `basename` is `import.meta.env.BASE_URL`, so it follows
 `base` automatically — keep in-app links as plain `to="/route"`.
+
+## Hosting
+
+nginx on a VPS serves `dist/` off disk. See `deploy/` for the vhost and the
+deploy steps. CI does not deploy — builds happen on the server via `npm run
+build`, since `dist/` is gitignored.
+
+Never put `vite preview` or `vite dev` behind nginx as an upstream. They are
+dev servers, they exit with the shell that started them, and a `proxy_pass` to
+a dead one is what caused a production 502 outage. Serving files directly means
+there is no upstream to fail.
 
 ## Auth
 
