@@ -6,6 +6,7 @@ import PhoneStatusBar from './PhoneStatusBar';
 import TemplateToolbar from './TemplateToolbar';
 import { getAddress, getFeeAmount } from '../../lib/config';
 import { CARD_HEIGHT, captureCardPng } from '../../lib/card';
+import { statusTimeFromTimestamp } from '../../lib/clock';
 import { randomBattery, randomSignal, randomSignalBars, randomTime, randomTxHash } from '../../lib/random';
 
 const THEME = {
@@ -83,7 +84,20 @@ const BybitWithdrawal = ({ dark = false }) => {
     }));
 
     const handleChange = (e) => {
-        setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+        const { name, value } = e.target;
+
+        // The status bar clock is the phone's own, so a receipt timed 22:32
+        // beside a 4:07 clock reads as staged. Editing the receipt's Time
+        // carries it up to the status bar; the clock stays editable afterwards,
+        // so a deliberate mismatch only lasts until Time is touched again.
+        // (Both fields are called "time", but they sit in separate state with
+        // separate handlers — this one is the receipt's.)
+        if (name === 'time') {
+            const clock = statusTimeFromTimestamp(value);
+            if (clock !== null) setStatusBar((prev) => ({ ...prev, time: clock }));
+        }
+
+        setFormData((prev) => ({ ...prev, [name]: value }));
     };
 
     const handleStatusBarChange = (e) => {

@@ -8,6 +8,7 @@ import PhoneStatusBar from './PhoneStatusBar';
 import TemplateToolbar from './TemplateToolbar';
 import { getAddress, getFeeAmount, getShowAssistant } from '../../lib/config';
 import { CARD_HEIGHT, captureCardPng } from '../../lib/card';
+import { statusTimeFromTimestamp } from '../../lib/clock';
 import { totalWithFee } from '../../lib/amount';
 import { randomBattery, randomSignal, randomSignalBars, randomTime, randomTxHash } from '../../lib/random';
 
@@ -141,6 +142,15 @@ const BinanceWithdrawal = ({ dark = false }) => {
 
     const handleChange = (e) => {
         const { name, value } = e.target;
+
+        // The status bar clock is the phone's own, so a receipt dated 12:50
+        // beside a 4:07 clock reads as staged. Editing the date carries its time
+        // up to the status bar; the clock stays editable afterwards, so a
+        // deliberate mismatch only lasts until the date is touched again.
+        if (name === 'date') {
+            const time = statusTimeFromTimestamp(value);
+            if (time !== null) setStatusBar((prev) => ({ ...prev, time }));
+        }
 
         setFormData((prev) => {
             const next = {
