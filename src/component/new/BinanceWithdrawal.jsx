@@ -113,7 +113,7 @@ const BinanceWithdrawal = ({ dark = false }) => {
 
     // Lazy so the random values are drawn once per mount, not per render.
     const [statusBar, setStatusBar] = useState(() => ({
-        time: randomTime(),
+        time: randomTime({ hour24: true }),
         battery: randomBattery(),
         signal: randomSignal({ wifi: true }),
         signalBars: randomSignalBars(),
@@ -144,9 +144,10 @@ const BinanceWithdrawal = ({ dark = false }) => {
         const { name, value } = e.target;
 
         // The status bar clock is the phone's own, so a receipt dated 12:50
-        // beside a 4:07 clock reads as staged. Editing the date carries its time
-        // up to the status bar; the clock stays editable afterwards, so a
-        // deliberate mismatch only lasts until the date is touched again.
+        // beside a 04:07 clock reads as staged. Editing the date copies its time
+        // up to the status bar verbatim — same 24-hour HH:MM both places. The
+        // clock stays editable afterwards, so a deliberate mismatch lasts until
+        // the date is touched again.
         if (name === 'date') {
             const time = statusTimeFromTimestamp(value);
             if (time !== null) setStatusBar((prev) => ({ ...prev, time }));

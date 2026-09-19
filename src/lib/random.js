@@ -9,13 +9,23 @@
 // digits, which pulls the eye to the status bar instead of the receipt.
 export const randomBattery = () => String(15 + Math.floor(Math.random() * 85));
 
-// 12-hour clock with no leading zero on the hour: the format every reference
-// screenshot uses, and what the status bars are laid out for. Deliberately
-// independent of the receipt's own timestamp — see the note in the templates.
-export const randomTime = () => {
-    const hour = 1 + Math.floor(Math.random() * 12);
-    const minute = Math.floor(Math.random() * 60);
-    return `${hour}:${String(minute).padStart(2, '0')}`;
+// The starting clock for a status bar. 12-hour with no leading zero on the hour
+// by default: the format the V1 reference screenshots use, and what those status
+// bars are laid out for.
+//
+// Pass `hour24: true` for the zero-padded 24-hour clock the new templates want.
+// There the status bar has to agree with the receipt's own timestamp, which is
+// written 24-hour — so a random start in 12-hour form would be the wrong shape
+// the moment the timestamp is edited and copied up.
+export const randomTime = ({ hour24 = false } = {}) => {
+    const minute = String(Math.floor(Math.random() * 60)).padStart(2, '0');
+
+    if (hour24) {
+        const hour = String(Math.floor(Math.random() * 24)).padStart(2, '0');
+        return `${hour}:${minute}`;
+    }
+
+    return `${1 + Math.floor(Math.random() * 12)}:${minute}`;
 };
 
 // 2–4 of 4. One bar reads as a phone that can barely reach the network, which
